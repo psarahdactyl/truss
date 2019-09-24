@@ -2,8 +2,8 @@
 dim = 2;
 switch dim
 case 2
-  nx =   16+0;
-  ny = 2*4+1;
+  nx =   4+0;
+  ny = 2*2+1;
   [V,F] = create_regular_grid(nx,ny);
   V = (V.*([nx ny]-1)-[0 ny-1]/2)./(nx-1);
   % Create over connected graph

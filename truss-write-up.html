@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Truss Optimization as a Linear Program</title>
+</head>
+<body>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "all"} } });
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<div style="display:none">
+<span class="math">\(\newcommand{\a}{\mathbf{a}}\)</span>
+<span class="math">\(\newcommand{\B}{\mathbf{B}}\)</span>
+<span class="math">\(\newcommand{\b}{\hat{\mathbf{b}}}\)</span>
+<span class="math">\(\newcommand{\E}{\mathbf{E}}\)</span>
+<span class="math">\(\newcommand{\e}{\mathbf{e}}\)</span>
+<span class="math">\(\newcommand{\f}{\mathbf{f}}\)</span>
+<span class="math">\(\newcommand{\I}{\mathbf{I}}\)</span>
+<span class="math">\(\newcommand{\Zero}{\mathbf{0}}\)</span>
+<span class="math">\(\newcommand{\l}{\mathbf{l}}\)</span>
+<span class="math">\(\newcommand{\t}{\mathbf{t}}\)</span>
+<span class="math">\(\newcommand{\R}{\mathbb{R}}\)</span>
+<span class="math">\(\newcommand{\V}{\mathbf{V}}\)</span>
+<span class="math">\(\renewcommand{\v}{\mathbf{v}}\)</span>
+</div>
+
+<h1 id="trussoptimizationasalinearprogram">Truss Optimization as a Linear Program</h1>
+
+<p>We consider the problem of finding minimal volume structure that can support a
+given loading condition.
+<!---->
+We limit our consideration to truss structures: rigid networks of beams.
+<!---->
+For us, the beams of our truss maybe be different thicknesses, but each
+individual beam must be straight and have a uniform thickness (i.e., constant
+cross-section along the beam).
+<!---->
+We assume that beams are strong under compression and tension, but weak under
+bending.
+<!---->
+Intuitively, we will imagine that beams perfectly resist compression (or
+tension) until a breaking point, but would instantly fail in the presence of
+forces causing them to bend.</p>
+
+<p>A truss is a graph embedded <span class="math">\(\R^d\)</span> represented as a list of <span class="math">\(n\)</span> vertex locations
+<span class="math">\(\V = \{\v_1,\v_2,\dots, \v_n\} ∈ \R^{n×d}\)</span>, a set of <span class="math">\(m\)</span> edges <span class="math">\(\E =
+\{\e_1,\e_2,\dots, \e_m\} ∈ [1,n]^{m×2}\)</span>, and a list of non-negative
+cross-sectional areas associated with each edge <span class="math">\(\a = \{a_1,a_2,\dots,a_m\} ∈
+\R_{≥0}^m\)</span>.</p>
+
+<p>Treating the cross-sectional areas <span class="math">\(\a\)</span> as
+unknowns,
+our truss optimization problem is to find the minimal volume truss that can
+support a given set of external loads (forces) specified at vertices <span class="math">\(\f
+= \mathop{\text{vec}}(\{\f_1,\f_2,\dots,\f_n\}) ∈ \R^{dn}\)</span>.
+<!---->
+To pose this problem, we introduce a scalar <em>unknown</em> per-edge to represent the tensile
+force exerted on each of its endpoint vertices in the outward direction of the
+edge: <span class="math">\(\t = \{t_1,t_2,\dots,t_m\} ∈ \R^m\)</span>.
+<!---->
+If <span class="math">\(i\)</span> th edge <span class="math">\(\e_i = \{j,k\}\)</span> is under tension, then its tensile force is positive (<span class="math">\(t_i > 0\)</span>), and
+the edge <em>pulls</em> inwardly on the vertex at <span class="math">\(\v_j\)</span> (in the
+direction of <span class="math">\(\b_i = (\v_k-\v_j)/\|\v_k-\v_j\| ∈ \R^d\)</span>) and on <span class="math">\(\v_k\)</span> (in the
+opposite direction, <span class="math">\(-\b_i\)</span>).
+<!---->
+If the tensile force is negative (<span class="math">\(t_i<0\)</span>), then the edge is under compression,
+and pulling becomes pushing.
+<!---->
+To account for the material failure of the beams, we assume we know the tensile
+and compressive strength of the material given as a maximum ratio of tensile
+force to cross-sectional area: <span class="math">\(σ_t ≥ t_i/a_i\)</span> and <span class="math">\(σ_c ≥ -t_i/a_i\)</span>,
+respectively. Without loss of generality, we&#8217;ll assume these strengths to be the
+same for all beams (i.e., the truss is made out of one material).
+<!---->
+Finally, let us introduce the list of edge lengths <span class="math">\(\l = \{l_1,l_2,\dots,l_m\}
+∈\R^m\)</span>, where <span class="math">\(l_i = \|\v_k-\v_j\|\)</span> for the edge <span class="math">\(\e_i = \{j,k\}\)</span>.</p>
+
+<p>With these definitions and variables defined, we can write the truss
+optimization problem as minimization of total volume subject to <span class="math">\(d\,n\)</span> linear force
+balance equalities and <span class="math">\(2m\)</span> linear inequalities imposing strength limits:</p>
+
+<p>$$
+\mathop{\text{minimize}}_{\a,\t} \sum\limits_{i=1}^m a_i l_i \\
+\text{ subject to } \sum\limits_{\e_i=\{j,k\}} t_i \b_i - \sum\limits_{\e_i=\{k,j\}} t_i \b_i = \f_j, \ ∀ j = 1\dots n \\
+%\text{ subject to } \f_j = \sum\limits_{i=1}^m \begin{cases}
+% t_i \b_i &amp; \text{if } \e_i = \{j,k\},\\
+% -t_i \b_i &amp; \text{else if } \e_i = \{k,j\},\\
+% 0 &amp; \text{else.}
+%\end{cases}, \ ∀ j = 1\dots n \\
+\text{ and } σ_t a_i ≥ t_i, \ ∀ i = 1\dots m \\
+\text{ and } σ_c a_i ≥ -t_i, \ ∀ i = 1\dots m
+$$</p>
+
+<p>Or gathering terms into appropriately sized matrices:
+$$
+\mathop{\text{minimize}}_{\begin{bmatrix}\a \\ \t \end{bmatrix}} \ \begin{bmatrix}\l^\top &amp; \Zero \end{bmatrix} \begin{bmatrix}\a \\ \t \end{bmatrix} \\
+\text{ subject to } \begin{bmatrix}\Zero &amp; \B \end{bmatrix} \begin{bmatrix}\a \\ \t \end{bmatrix} = \f \\
+\text{ and } \begin{bmatrix} σ_t \I &amp; -\I \\ σ_c \I &amp; \I\end{bmatrix} \begin{bmatrix}\a \\ \t \end{bmatrix}≥ \Zero,
+$$
+where <span class="math">\(\B ∈ \R^{nd × m}\)</span> is a sparse matrix collecting the appropriately signed
+edge directions and <span class="math">\(\I ∈ \R^{m×m}\)</span> is an identity matrix.</p>
+
+<p><strong>Note on Constraints:</strong>
+Boundary conditions can be incoporated by removing or adjusting the rows of the
+linear equality conditions (<span class="math">\(\B\ \t = \f\)</span>). In particular, to <em>fix</em> (<em>pin</em>) the
+position of <span class="math">\(j\)</span> th vertex, the corresponding <span class="math">\(d\)</span> rows in <span class="math">\(\B\)</span> and <span class="math">\(\f\)</span> should be
+<em>removed</em>.</p>
+
+<p>This is a linear program and can be immediately solved using the <code>linprog</code>
+function of libraries such as MATLAB or Mosek.</p>
+
+<p><a class="citation" href="#fn:1" title="Jump to citation">[1]<span class="citekey" style="display:none">zegard2015</span></a></p>
+
+<p>Could rewrite with total volume as a <em>constraint</em> and treat minimal <em>complaince</em>
+as an objective <a class="citation" href="#fn:2" title="Jump to citation">[2]<span class="citekey" style="display:none">freund2004</span></a>.</p>
+
+<p>Ground Structure</p>
+
+<ul>
+<li>linprog of [a;n] write in Aeq, Aieq form&#8230;</li>
+<li>units!</li>
+<li>B: edge unit vectors, orientation matters</li>
+</ul>
+
+<p>Pitfalls
+ - overlapping edges</p>
+
+<div class="footnotes">
+<hr />
+<ol>
+
+<li id="fn:1" class="citation"><span class="citekey" style="display:none">zegard2015</span><p>Tomás Zegard, Glaucio H. Paulino. &#8220;GRAND3 — Ground structure
+based topology optimization for arbitrary 3D domains using MATLAB&#8221;, 2015.</p>
+</li>
+
+<li id="fn:2" class="citation"><span class="citekey" style="display:none">freund2004</span><p>Robert Freund. &#8220;Truss Design and Convex Optimization&#8221;, 2004.</p>
+</li>
+
+</ol>
+</div>
+
+
+</body>
+</html>

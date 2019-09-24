@@ -345,23 +345,23 @@ function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
       [X,Z,state] = admm(argmin_X,argmin_Z,A,B,c,state,'MaxIter',1);
       toc
       fprintf('im alive\n');
-      a = a_fun(X);
-      n = N_fun(X);
-      %if mod(iter,1) == 1
-        aeff = a;
-        subplot(2,1,1);
-      %plot_groundstructure(V,E,aeff,n(:,1));
-      tsurf(E(aeff>1e-7,:),V,'CData',aeff(aeff>1e-7,:));
-      axis equal;
-      title(sprintf('Vol: %g, #bars: %d/%d, iter: %d',l'*aeff,sum(aeff>1e-7),size(E,1),iter-0),'FontSize',20);
-        subplot(2,1,2);
-        aeff = mean(Sp/sT + Sn/sC,2);
-      tsurf(E(aeff>1e-7,:),V,'CData',aeff(aeff>1e-7,:));
-      %plot_groundstructure(V,E,aeff,n(:,1));
-      axis equal;
-      title(sprintf('Vol: %g, #bars: %d, iter: %d',l'*aeff,sum(aeff>1e-7),iter-0),'FontSize',20);
-      max(abs(BT*n - F))
-      drawnow;
+      %a = a_fun(X);
+      %n = N_fun(X);
+      %%if mod(iter,1) == 1
+      %  aeff = a;
+      %  subplot(2,1,1);
+      %%plot_groundstructure(V,E,aeff,n(:,1));
+      %tsurf(E(aeff>1e-7,:),V,'CData',aeff(aeff>1e-7,:));
+      %axis equal;
+      %title(sprintf('Vol: %g, #bars: %d/%d, iter: %d',l'*aeff,sum(aeff>1e-7),size(E,1),iter-0),'FontSize',20);
+      %  subplot(2,1,2);
+      %  aeff = mean(Sp/sT + Sn/sC,2);
+      %tsurf(E(aeff>1e-7,:),V,'CData',aeff(aeff>1e-7,:));
+      %%plot_groundstructure(V,E,aeff,n(:,1));
+      %axis equal;
+      %title(sprintf('Vol: %g, #bars: %d, iter: %d',l'*aeff,sum(aeff>1e-7),iter-0),'FontSize',20);
+      %max(abs(BT*n - F))
+      %drawnow;
       %figgif('admm-2d-gs.gif');
       %pause
       %end

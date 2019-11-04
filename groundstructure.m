@@ -1,4 +1,4 @@
-function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
+function [a,n,l,h,OBT] = groundstructure(V,E,H,GV,f,bf,sC,sT,varargin)
 % [a,n] = groundstructure(V,E,f,bf,sC,sT,...)
 %
 % Inputs:
@@ -195,8 +195,21 @@ function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
   EV = normalizerow(V(E(:,2),:)-V(E(:,1),:));
   % bar lengths
   l = edge_lengths(V,E);
+  h = edge_visibilities(V,E,GV,H,l);
+%   l = l .* -exp((1-h)*3) + max(1-h)+5;
+  thres = min(1-h)+range(1-h)*.5;
+  h_old = h;
+  h(h>thres) = max(1-h);
+  h(h<=thres) = min(1-h);
+  l = l .* (1-h);
+  
+%    clf;
+%    [~,idx] = sort(h_old);
+%    plot(h_old(idx,:),h(idx,:),'LineWidth',5);
+%    plot(h,h,'LineWidth',5);
+
   % use ignored edges for free
-  %l(ignored_edges) = 0;
+  l(ignored_edges) = 0;
 
 
   n = size(V,1);
@@ -243,7 +256,7 @@ function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
        repmat([l*sC;l*sT],nf,1), ...
        [],[], ...
        [repdiag([BT, -BT],nf);A],[f(:);b], ...
-       zeros(2*m*nf,1),inf(2*m*nf,1),[],params);
+       zeros(2*m*nf,1),inf(2*m*nf,1),params);
     s = reshape(s,[m,2,nf]);
     sp = permute(s(:,1,:),[1 3 2]);
     sn = permute(s(:,2,:),[1 3 2]);
@@ -264,7 +277,6 @@ function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
     [an,~,flags,output] = linprog([l;zeros(m*nf,1)],A,b,[sparse(size(BT,1),m) BT],f(:), ...
       [zeros(m,1);-inf(m,1)], ...
       [max_a*ones(m,1);inf(m,1)], ...
-      [], ...
       params);
     a = an(1:m);
     n = reshape(an(m+(1:m*nf)),m,nf);

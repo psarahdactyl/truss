@@ -196,9 +196,13 @@ function [a,n,l,h,OBT] = groundstructure(V,E,H,GV,f,bf,sC,sT,varargin)
   % bar lengths
   l = edge_lengths(V,E);
   h = edge_visibilities(V,E,GV,H,l);
+
+  %   h_old = h;
+
+  
 %   l = l .* -exp((1-h)*3) + max(1-h)+5;
-  thres = min(1-h)+range(1-h)*.5;
-  h_old = h;
+
+  thres = min(1-h)+range(1-h)*.9;
   h(h>thres) = max(1-h);
   h(h<=thres) = min(1-h);
   l = l .* (1-h);

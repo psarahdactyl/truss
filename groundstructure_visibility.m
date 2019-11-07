@@ -22,14 +22,11 @@
 clf
 
 filename = ...
-    "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
-
-%     "~/Documents/visibility-app/viewer/data/planets/planet_scene.txt";
-%      "~/Documents/visibility-app/viewer/data/dale-test-scene/dale-scene.txt";
+    "~/Documents/visibility-app/viewer/data/planets/planet_scene.txt";
+%     "~/Documents/visibility-app/viewer/data/dale-test-scene/dale-scene.txt";
 %     "~/Documents/visibility-app/viewer/data/canonical/canonical_scene.txt";
-
-
-
+%     "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
+%     "~/Documents/visibility-app/viewer/data/backflip/backflip_scene.txt";
 
 % read scene and plot the objects
 [objs,bb] = read_scene(filename);
@@ -119,6 +116,7 @@ for i=2:size(objs,2)
         'PolySize',10,'Thickness',sqrt(max(a(NZ),0)/pi));
 
     fbf = reshape(BT(bf(:) + [0:dim-1]*size(V,1),:)*n,[],dim);
+%     plot_edges(V,E(NZ,:),'Color',[0.9 0.1840 0.5560],'LineWidth',3);
 
     % plot the cylinders
 %     color = sign(n(NZ(CJ)));
@@ -126,18 +124,16 @@ for i=2:size(objs,2)
     
     % plot clustered cylinders
     % ideal k (last argument) is the "ideal" (by user standards)
-    % number of RODS for tension
-    % and the ideal number of RODS for COMPRESSION
-    % i.e. if k = 3, you are asking for 3 compression rods and 3 tension
-    % rods
-    % nevermind, k is now how many TOTAL rods you want to end up with
-    [nV, nE, nNZ, nn, na] = cluster_endpoints(V,E,NZ,n,H,GV,sC,sT,cm,7);
-    [nCV,nCF,nCJ,nCI] = edge_cylinders(nV,nE(nNZ,:),...
+    % k is how many TOTAL rods you want to end up with
+    [SV, SE, nNZ, nn, na] = cluster_endpoints(V,E,NZ,n,H,GV,sC,sT,cm,size(NZ,1)-1);
+    [nCV,nCF,nCJ,nCI] = edge_cylinders(SV,SE(nNZ,:),...
         'PolySize',10,'Thickness',sqrt(max(na(nNZ),0)/pi));
     
     % plot the new cylinders
     color = sign(nn(nNZ(nCJ)));
     tsurf(nCF,nCV,falpha(1,0),'CData',color,fsoft);
+%     SV(SE(nNZ,1),:)
+%     SV(SE(nNZ,2),:)
     
     % plot COM
     scatter3(cm(:,1),cm(:,2),cm(:,3),'.r','SizeData',1000);
@@ -187,7 +183,7 @@ camproj('perspective')
 caxis([-1 1])
 % colormap([cbrewer('RdBu',256);cbrewer('PiGn',256)])
 % colormap([parula(256);jet(256)])
-% colormap(flipud(cbrewer('RdBu',256)))
-colormap(flipud(cbrewer('PiYG',256)))
+colormap(flipud(cbrewer('RdBu',256)))
+% colormap(flipud(cbrewer('PiYG',256)))
 colorbar
 

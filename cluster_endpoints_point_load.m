@@ -1,5 +1,5 @@
 % hold on
-function [nV, nE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,sT,ideal_k,force_vertices)
+function [SV, SE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,sT,ideal_k,force_vertices)
     % separate rods in tension and rods in compression
     % and also separate them by object
     RT1 = V(E(NZ(sign(n(NZ))==-1),1),:);
@@ -21,7 +21,7 @@ function [nV, nE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,s
 
 %     [~,cT] = kmeans(RT,kt);
 %     [~,cC] = kmeans(RC,kc);
-    [~,cB] = kmeans([RT;RC],ideal_k);
+    [~,cB] = kmedoids([RT;RC],ideal_k);
 
     % split cT and cC into two sides
 %     C1 = [cT(:,1:3); cC(:,1:3)];
@@ -47,12 +47,12 @@ function [nV, nE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,s
 
     [na,nn,l,h,BT] = groundstructure(SV,SE,H,GV,f,bf,sC,sT);
 
-    nNZ = find(max(na,0)>1e-4);
+    nNZ = find(max(na,0)>1e-7);
     num_rods_clustered = size(nNZ,1)
     num_compression_clustered = sum(sign(nn(nNZ))==1)
     num_tension_clustered = sum(sign(nn(nNZ))==-1)
     
-    plot_edges(nV,nE(nNZ,:),'Color',[0.4940 0.1840 0.5560],'LineWidth',3);
+%     plot_edges(nV,nE(nNZ,:),'Color',[0.4940 0.1840 0.5560],'LineWidth',3);
 
 
 %     [CV,CF,CJ,CI] = edge_cylinders(nV,nE(nNZ,:),...

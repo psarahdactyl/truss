@@ -1,7 +1,8 @@
 % this file will be using point loads instead of rigid body loads
 clf
 filename = ...
-    "~/Documents/visibility-app/viewer/data/canonical/canonical_scene.txt";
+    "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
+%     "~/Documents/visibility-app/viewer/data/canonical/canonical_scene.txt";
 
 
 % read scene and plot the objects
@@ -48,27 +49,33 @@ for i=2:size(objs,2)
     % nodal forces, boundary vertices, stress limits
     % place nodal force on first V
     f = zeros(size(V));
-    f(1:3,2) = -9.8;
-    V_forces = V(1:3,:);
+%     f(1:3,2) = -9.8;
+    f(1,2) = -9.8;
+%     V_forces = V(1:3,:);
+    V_forces = V(1,:);
     bf = size(RVV,1)+(1:size(DV,1));
     sC = 5e2;
-    sT = 5e2;
+    sT = 5e2;    
 
     % get areas, axial forces, lengths, nodal equilibrium matrix
     [a,n,l,h,BT] = groundstructure(V,E,H,GV,f,bf,sC,sT);
 
     % find areas bigger than a certain threshold and place a cylinder there
-    NZ = find(max(a,0)>1e-4);
+    NZ = find(max(a,0)>1e-7);
     num_rods_before_cluster = size(NZ,1)
     num_compression = sum(sign(n(NZ))==1)
     num_tension = sum(sign(n(NZ))==-1)
     [CV,CF,CJ,CI] = edge_cylinders(V,E(NZ,:),...
         'PolySize',10,'Thickness',sqrt(max(a(NZ),0)/pi));
     
+    % plot the cylinders
+    color = sign(n(NZ(CJ)));
+    tsurf(CF,CV,falpha(1,0),'CData',color,fsoft);
+    
     % plot clustered cylinders
     % ideal k (last argument) is the "ideal" (by user standards)
     % k is how many TOTAL rods you want to end up with
-    [nV, nE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,sT,size(NZ,1),V_forces);
+    [nV, nE, nNZ, nn, na] = cluster_endpoints_point_load(V,E,NZ,n,H,GV,sC,sT,3,V_forces);
     [nCV,nCF,nCJ,nCI] = edge_cylinders(nV,nE(nNZ,:),...
         'PolySize',10,'Thickness',sqrt(max(na(nNZ),0)/pi));
     
@@ -97,9 +104,9 @@ cameratoolbar('SetCoordSys','y')
 cameratoolbar('setmode','orbit')
 camproj('perspective')
 caxis([-1 1])
-% colormap([cbrewer('RdBu',256);cbrewer('PiGn',256)])
+colormap(flipud(cbrewer('RdBu',256)))
 % colormap([parula(256);jet(256)])
 % colormap(flipud(cbrewer('RdBu',256)))
-colormap(flipud(cbrewer('PiYG',256)))
+% colormap(flipud(cbrewer('PiYG',256)))
 colorbar
 

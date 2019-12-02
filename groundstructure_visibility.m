@@ -22,11 +22,15 @@
 clf
 
 filename = ...
-    "~/Documents/visibility-app/viewer/data/planets/planet_scene.txt";
-%     "~/Documents/visibility-app/viewer/data/dale-test-scene/dale-scene.txt";
+      "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
+
 %     "~/Documents/visibility-app/viewer/data/canonical/canonical_scene.txt";
-%     "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
+
+%     "~/Documents/visibility-app/viewer/data/dale-test-scene/dale-scene.txt";
+
 %     "~/Documents/visibility-app/viewer/data/backflip/backflip_scene.txt";
+%     "~/Documents/visibility-app/viewer/data/planets/planet_scene.txt";
+
 
 % read scene and plot the objects
 [objs,bb] = read_scene(filename);
@@ -39,11 +43,18 @@ Vs = read_visibilities(filename);
 % read surface voxels of each object
 SVs = read_surface_voxels(filename);
 
-hold on
-axis equal
+hold on;
+% axis equal tight manual % this ensures that getframe() returns a consistent size
+% camlight;
+% camup([0 1 0]);
+% camproj('perspective')
+% view(26,15)
+
+gif_filename = 'k-means-rods.gif';
+    
 % plot background wall
-tsurf(objs{1}{2},objs{1}{1},...
-    'FaceColor',0.5+0.5*blue,falpha(1,0),fsoft)
+wall = tsurf(objs{1}{2},objs{1}{1},...
+    'FaceColor',0.5+0.5*blue,falpha(1,0),fsoft);
 
 % get all vertices/faces in the scene
 % AV = objs{1}{1};
@@ -53,12 +64,16 @@ tsurf(objs{1}{2},objs{1}{1},...
 %    AF = [AF; objs{i}{2}+max(max(objs{i-1}{2}))];
 % end
 
+rng(0);
+writeSTL("./mesh0.stl",objs{1}{1},objs{1}{2});
+
 % assumes "wall" shape is the first object, as does the c++ code
 for i=2:size(objs,2)
     MC = repmat(0.8*[0.99 1 0.99],size(objs{i}{2},1),1); % colors
     % plot object
-    tsurf(objs{i}{2},objs{i}{1},...
+    object = tsurf(objs{i}{2},objs{i}{1},...
         'FaceVertexCData',MC,falpha(0.8,0),fsoft);
+    
     % find centroid of object on which to apply force (gravity)
     cm = centroid(objs{i}{1},objs{i}{2});
 
@@ -94,8 +109,8 @@ for i=2:size(objs,2)
     bl = snap_points(cm,V);
     f(bl,2) = -9.8;
     bf = 1+size(RVV,1)+(1:size(DV,1));
-    sC = 5e2;
-    sT = 5e2;
+    sC = 5e1;
+    sT = 5e1;
 
     % get areas, axial forces, lengths, nodal equilibrium matrix
     [a,n,l,h,BT] = groundstructure(V,E,H,GV,f,bf,sC,sT,'IgnoredEdges',1:size(RVV,1));
@@ -104,14 +119,14 @@ for i=2:size(objs,2)
     av = 1 + (1:naa)';
     ae = (1:naa)';
     dim = size(V,2);
-    fa = reshape(BT(av + size(V,1)*[0:dim-1],naa+1:end)*n(naa+1:end),[],dim);
-    torque = normrow(sum(cross(fa,V(E(ae,2),:)-V(E(ae,1),:),2)))
+%     fa = reshape(BT(av + size(V,1)*[0:dim-1],naa+1:end)*n(naa+1:end),[],dim);
+%     torque = normrow(sum(cross(fa,V(E(ae,2),:)-V(E(ae,1),:),2)))
 
     % find areas bigger than a certain threshold and place a cylinder there
     NZ = find(max(a,0)>1e-4);
     num_rods_before_cluster = size(NZ,1)
-    num_compression = sum(sign(n(NZ))==1)
-    num_tension = sum(sign(n(NZ))==-1)
+%     num_compression = sum(sign(n(NZ))==1)
+%     num_tension = sum(sign(n(NZ))==-1)
     [CV,CF,CJ,CI] = edge_cylinders(V,E(NZ,:),...
         'PolySize',10,'Thickness',sqrt(max(a(NZ),0)/pi));
 
@@ -119,34 +134,64 @@ for i=2:size(objs,2)
 %     plot_edges(V,E(NZ,:),'Color',[0.9 0.1840 0.5560],'LineWidth',3);
 
     % plot the cylinders
-%     color = sign(n(NZ(CJ)));
-%     tsurf(CF,CV,falpha(1,0),'CData',color,fsoft);
+    color = sign(n(NZ(CJ)));
+
+    cylinders = tsurf(CF,CV,falpha(1,0),'CData',color,fsoft);
+%     hold off;
+%     caxis([-1 1])
+%     colormap(flipud(cbrewer('RdBu',256)))
+%     frame = getframe; 
+%     im = frame2im(frame); 
+%     [imind,colorm] = rgb2ind(im,256);
+%     imwrite(imind,colorm,gif_filename,'gif', 'Loopcount',inf); 
     
-    % plot clustered cylinders
-    % ideal k (last argument) is the "ideal" (by user standards)
-    % k is how many TOTAL rods you want to end up with
-    [SV, SE, nNZ, nn, na] = cluster_endpoints(V,E,NZ,n,H,GV,sC,sT,cm,size(NZ,1)-1);
-    [nCV,nCF,nCJ,nCI] = edge_cylinders(SV,SE(nNZ,:),...
-        'PolySize',10,'Thickness',sqrt(max(na(nNZ),0)/pi));
+    writeSTL("./mesh"+(i-1)+".stl",objs{i}{1},objs{i}{2});
     
-    % plot the new cylinders
-    color = sign(nn(nNZ(nCJ)));
-    tsurf(nCF,nCV,falpha(1,0),'CData',color,fsoft);
-%     SV(SE(nNZ,1),:)
-%     SV(SE(nNZ,2),:)
+%     % plot clustered cylinders
+%     % ideal k (last argument) is the "ideal" (by user standards)
+%     % k is how many TOTAL rods you want to end up with
+%     num_rods_collection = ones(size(NZ,1),1);
+%     num_rods_collection(1) = size(NZ,1);
+%     for fr = 1:size(NZ,1)-1
+%         hold on
+        ideal_k = size(NZ,1)
+        [SV, SE, nNZ, nn, na] = cluster_endpoints(V,E,NZ,n,H,GV,sC,sT,cm,ideal_k);
+        [nCV,nCF,nCJ,nCI] = edge_cylinders(SV,SE(nNZ,:),...
+            'PolySize',10,'Thickness',sqrt(max(na(nNZ),0)/pi));
+%         
+%         num_rods_collection(fr+1) = size(nNZ,1);
+        num_rods_after_cluster = size(nNZ,1)
+% 
+% 
+%         % plot the new cylinders
+%         if (size(nNZ,1) ~= size(NZ,1) && size(nNZ,1)~=0)
+%             delete(cylinders)
+%             color = sign(nn(nNZ(nCJ)));
+%             cylinders = tsurf(nCF,nCV,falpha(1,0),'CData',color,fsoft);
+%             writeSTL("./cylinders"+(i-1)+".stl",nCV,nCF);
+% 
+%             plot COM
+            scatter3(cm(:,1),cm(:,2),cm(:,3),'.r','SizeData',1000);   
+% 
+%             % Capture the plot as an image 
+%             frame = getframe; 
+%             im = frame2im(frame); 
+%             [imind,colorm] = rgb2ind(im,256); 
+%             % Write to the GIF File 
+%             imwrite(imind,colorm,gif_filename,'gif','WriteMode','append'); 
+%         end
+%     
+%     end
     
-    % plot COM
-    scatter3(cm(:,1),cm(:,2),cm(:,3),'.r','SizeData',1000);
-    
-    % plot visibilities
+%     % plot visibilities
 %     GV_h = GV(H~=0,:);
 %     H_h = H(H~=0);
 %     scatter3(GV_h(:,1),GV_h(:,2),GV_h(:,3),...
 %         '.','CData', abs(H_h),'SizeData',300);
 
-    quiver3( ...
-      V(:,1),V(:,2),V(:,3), ...
-      f(:,1),f(:,2),f(:,3),'r','LineWidth',2);
+%     quiver3( ...
+%       V(:,1),V(:,2),V(:,3), ...
+%       f(:,1),f(:,2),f(:,3),'r','LineWidth',2);
   
       % plot isosurface
       % TODO: make this nicer than hardcoding
@@ -161,14 +206,7 @@ for i=2:size(objs,2)
 %     patch('Vertices',verts,'Faces',faces,'FaceVertexCData',colors,...
 %     'FaceColor','interp','EdgeColor','none')
 %     alpha(0.3);
-  
 
-% scatter3(RVV(:,1),RVV(:,2),RVV(:,3),'.b','SizeData',1000);
-
-% quiver3( ...
-%   V(bf,1),V(bf,2),V(bf,3), ...
-%   fbf(:,1),fbf(:,2),fbf(:,3), ...
-%   0,'.b','LineWidth',3);
 end
 
 hold off;
@@ -181,9 +219,6 @@ cameratoolbar('SetCoordSys','y')
 cameratoolbar('setmode','orbit')
 camproj('perspective')
 caxis([-1 1])
-% colormap([cbrewer('RdBu',256);cbrewer('PiGn',256)])
-% colormap([parula(256);jet(256)])
 colormap(flipud(cbrewer('RdBu',256)))
-% colormap(flipud(cbrewer('PiYG',256)))
 colorbar
 

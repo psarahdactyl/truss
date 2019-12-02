@@ -47,12 +47,12 @@ tsurf(MF,MV,'FaceColor',[0.6 0.5 0.3],falpha(1,0));
 %tsurf(E,V,'LineWidth',2);
 plot_groundstructure(V,E,a,n);
 plot_edges(V,E(1:numel(aa),:),'--k','LineWidth',3);
-scatter(V(1,1),V(1,2),'.r','SizeData',bbd);
-scatter(V(1+(1:numel(aa)),1),V(1+(1:numel(aa)),2),'.k','SizeData',bbd);
-scatter(V(bf,1),V(bf,2),'.b','SizeData',bbd);
-quiver(V(:,1),V(:,2),f(:,1),f(:,2),0,'r','LineWidth',3);
-quiver(V(bf,1),V(bf,2),fbf(:,1),fbf(:,2),0,'.b','LineWidth',3);
-quiver(V(1+(1:numel(aa)),1),V(1+(1:numel(aa)),2),fa(:,1),fa(:,2),0,'b','LineWidth',3);
+% scatter(V(1,1),V(1,2),'.r','SizeData',bbd);
+% scatter(V(1+(1:numel(aa)),1),V(1+(1:numel(aa)),2),'.k','SizeData',bbd);
+% scatter(V(bf,1),V(bf,2),'.b','SizeData',bbd);
+% quiver(V(:,1),V(:,2),f(:,1),f(:,2),0,'r','LineWidth',3);
+% quiver(V(bf,1),V(bf,2),fbf(:,1),fbf(:,2),0,'.b','LineWidth',3);
+% quiver(V(1+(1:numel(aa)),1),V(1+(1:numel(aa)),2),fa(:,1),fa(:,2),0,'b','LineWidth',3);
 hold off;
 axis equal
 title(sprintf('Vol: %g, #bars: %d',l'*a,sum(log10(a)>-4)),'FontSize',20);

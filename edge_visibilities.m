@@ -5,10 +5,11 @@ function h = edge_visibilities(V, E, GV, H, l)
 % l : edge lengths
 
     h = zeros(size(l));
-%     side = [19 16 20];
-%     side = [20 20 15];
-%     side = [7 11 20];
-    side = [20 20 20];
+%     side = [16 20 30]; % dale scene
+%     side = [40 40 36]; % non convex scene
+    side = [18 21 40]; % dogfight scene
+%     side = [12 21 40]; % dogfight scene barbell
+%     side = [20 20 15]; % canonical
     half_voxel_width = abs(GV(1,1) - GV(2,1))/2;
     voxel_width = abs(GV(1,1) - GV(2,1));
     for i=1:size(E,1)

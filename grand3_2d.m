@@ -31,6 +31,10 @@ UV = [X(:), Y(:)];
   tic;
   [UV,E] = prune_edges(UV,E);
   toc
+  
+  hold on
+  scatter(UV(:,1),UV(:,2),'.g','SizeData',1000)  
+
 
 l = vecnorm(UV(E(:,1),:)-UV(E(:,2),:),2,2);
 
@@ -85,6 +89,15 @@ beq = f;
 % max_n = -9.8;
 lb = [zeros(Nb,1); -inf*ones(Nb,1)];
 % ub = [max_a*ones(Nb,1); zeros(Nb,1)];
+
+plot_edges(UV,E, 'Color',[0.5 0.5 0.5],'LineWidth',0.01)
+  
+  scatter( ...
+  UV(vertex,1), ...
+  UV(vertex,2),'.r','SizeData',1000);
+  scatter( ...
+  UV(Ifixed,1), ...
+  UV(Ifixed,2),'.b','SizeData',1000);
 
 % min_a V = l^T*a
 [S,vol,exitflag,output] = linprog(l,A,b,Aeq,beq,lb,[])

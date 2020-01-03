@@ -84,16 +84,16 @@ method = 'max';
 method = 'columns';
 switch method
 case 'sum'
-  [a,n,l] = groundstructure(V,E,sum(f,3),bf,sC,sT);
+  [a,n,l] = optimize_groundstructure(V,E,sum(f,3),bf,sC,sT);
 case 'max'
   a = zeros(size(E,1),1);
   n = zeros(size(E,1),size(f,3));
   for i = 1:size(f,3)
-    [ai,n(:,i),l] = groundstructure(V,E,f(:,:,i),bf,sC,sT);
+    [ai,n(:,i),l] = optimize_groundstructure(V,E,f(:,:,i),bf,sC,sT);
     a = max(a,ai);
   end
 case 'columns'
-  [a,n,l] = groundstructure(V,E,f,bf,sC,sT);
+  [a,n,l] = optimize_groundstructure(V,E,f,bf,sC,sT);
 end
 toc
 

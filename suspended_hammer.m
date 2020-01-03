@@ -29,7 +29,7 @@ f(1,2) = -9.8;
 bf = 1+numel(aa)+1:size(V,1);
 sC = 5e1;
 sT = 5e1;
-[a,n,l,BT] = groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:numel(aa));
+[a,n,l,BT] = optimize_groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:numel(aa));
 
 
 naa = numel(aa);

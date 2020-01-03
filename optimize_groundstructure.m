@@ -1,5 +1,5 @@
-function [a,n,l,OBT] = groundstructure(V,E,f,bf,sC,sT,varargin)
-% [a,n] = groundstructure(V,E,f,bf,sC,sT,...)
+function [a,n,l,OBT] = optimize_groundstructure(V,E,f,bf,sC,sT,varargin)
+% [a,n] = optimize_groundstructure(V,E,f,bf,sC,sT,...)
 %
 % Inputs:
 %   V  #V by dim list of node locations

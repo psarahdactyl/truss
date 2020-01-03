@@ -41,7 +41,7 @@ f(1,3) = -9.8;
 bf = 1+size(RV,1)+(1:size(DV,1));
 sC = 5e1;
 sT = 5e1;
-[a,n,l,BT] = groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:size(RV,1));
+[a,n,l,BT] = optimize_groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:size(RV,1));
 
 naa = size(RV,1);
 av = 1 + (1:naa)';

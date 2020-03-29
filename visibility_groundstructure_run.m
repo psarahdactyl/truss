@@ -1,38 +1,7 @@
-% what i need passed in from my C++ tool:
-
-% the visibility values -- can do this by writing out dmat of GV (voxel grid
-% center positions) and Ss (the visibility values for each voxel)
-
-% viable attachment points on back of objects -- can do this by finding
-% viable voxels for each object and writing out dmat of indices into GV for
-% each object
-
-% things i can do in matlab:
-% V,E for every object in scene and its position in the scene -- can do
-% this by reading in the stls
-
-% forces on each object (gravity on top center point of object)
-% create all edges
-% ground structure
-% visualize
-
-% integrate visibilities along edges
-% use visibility score in LP formulation
-
 clf
 
 filename = ...
      "~/Documents/siggraph2020/visibility-app/viewer/meshes/canonical/canonical_scene.txt";
-
-%     "~/Documents/siggraph2020/visibility-app/viewer/meshes/hotdog/hotdog-scene.txt";
-%     "~/Documents/siggraph2020/visibility-app/viewer/meshes/canonical/canonical_scene.txt";
-%     "~/Documents/visibility-app/viewer/data/dogfight/dogfight_scene.txt";
-
-%     "~/Documents/visibility-app/viewer/data/dale-test-scene/dale-scene.txt";
-
-%     "~/Documents/visibility-app/viewer/data/backflip/backflip_scene.txt";
-%     "~/Documents/visibility-app/viewer/data/planets/planet_scene.txt";
-
 
 % read scene and plot the objects
 [objs,bb] = read_scene(filename);
@@ -41,10 +10,7 @@ GV = readDMAT("grid.dmat");
 Vs = readDMAT("grid_visibilities.dmat");
 voxel_width = GV(1,1) - GV(2,1);
 % GV = GV - abs(repmat(repelem(voxel_width/2,3),size(GV,1),1));
-% read visibility values of GV for each object
-% Vs = read_visibilities(filename);
-% read surface voxels of each object
-% SVs = read_surface_voxels(filename);
+
 
 hold on;
 % axis equal tight manual % this ensures that getframe() returns a consistent size

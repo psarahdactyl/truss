@@ -1,4 +1,4 @@
-function [a,n,BT] = groundstructure(V,E,f,bf,sC,sT,h,l,varargin)
+function [a,n,BT] = solve_groundstructure_lp(V,E,f,bf,sC,sT,h,l,varargin)
 % [a,n] = groundstructure(V,E,f,bf,sC,sT,...)
 %
 % Inputs:
@@ -194,18 +194,8 @@ function [a,n,BT] = groundstructure(V,E,f,bf,sC,sT,h,l,varargin)
 
   EV = normalizerow(V(E(:,2),:)-V(E(:,1),:));
 
-%   test_h = h;
-%   test_h(ignored_edges) = 0;
-%   test_l = l;
-%   test_l(ignored_edges) = 0;
-%   
-%   max_length = max(test_l)
-%   min_length = min(test_l)
-%   
-%   max_vis = max(test_h)
-%   min_vis = min(test_h)
-
-  obj = l+300*h;
+%   obj = l+50*h;
+  obj =  l.*(50*h');
   
 %   max_objective = max(obj)
 %   min_objective = min(obj)
@@ -244,10 +234,10 @@ function [a,n,BT] = groundstructure(V,E,f,bf,sC,sT,h,l,varargin)
     params = [];
   end
 
-  % manually reformulate in "standard" lp form (no linear inequalities)
-  %method = 'standard';
+%   % manually reformulate in "standard" lp form (no linear inequalities)
+%   method = 'standard';
   method = 'linprog';
-  %method = 'admm';
+%   method = 'cvx';
   switch method
   case 'standard'
     assert(isempty(ignored_edges));
@@ -323,6 +313,30 @@ function [a,n,BT] = groundstructure(V,E,f,bf,sC,sT,h,l,varargin)
 %     i = find(other_err>1e-10)
 %     other_err(i)
     
+  case 'cvx'
+    BT = repdiag(BT,nf);
+    II = speye(m*nf,m*nf);
+    I = speye(m,m);
+    A = [repmat(-sC*I,nf,1) , -II; ...
+        repmat(-sT*I,nf,1) ,  II];
+    b = zeros(2*m*nf,1);
+    
+    vec = @(X) X(:);
+    ig_ind = vec(ignored_edges(:)+m*(0:1))+m*(0:nf-1);
+    A(ig_ind,:) = [];
+    b(ig_ind,:) = [];
+    
+    o = [obj;zeros(m*nf,1)];
+    B = [sparse(size(BT,1),m) BT];
+    
+    cvx_begin
+        variable x(m);
+        minimize( o' * x );
+        subject to
+            A * x <= b;
+            B * x == f();
+    cvx_end
+          
   case 'admm'
     % 
     %  min l'a 

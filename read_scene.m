@@ -15,17 +15,20 @@ function [objs, bb] = read_scene(filename)
         p =path+"/"+txt{1}{i};
         p
         [V,F] = readSTL(p);
-        mm(i,:) = min(V);
-        mm(i+size(txt{1},1),:) = max(V);
-        objs{i} = {V,F};
+        [SV,SVI,SVJ] = remove_duplicate_vertices(V,1e-7);
+        SF = SVJ(F);
+        mm(i,:) = min(SV);
+        mm(i+size(txt{1},1),:) = max(SV);
+        objs{i} = {SV,SF};
+        size(SV)
     end
     
     % translate STLs
     [bb,~] = bounding_box(mm);
     
-    for i=1:size(objs,2)
-        objs{i}{1} = objs{i}{1}...
-            - repmat(((max(bb)+min(bb))/2),size(objs{i}{1},1),1);
-    end
+%     for i=1:size(objs,2)
+%         objs{i}{1} = objs{i}{1}...
+%             - repmat(((max(bb)+min(bb))/2),size(objs{i}{1},1),1);
+%     end
 
 end

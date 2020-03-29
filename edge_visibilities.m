@@ -1,45 +1,49 @@
-function h = edge_visibilities(V, E, GV, H, l)
+function [h segments] = edge_visibilities(V, E, GV, side, w, H, l)
 % H : hiddenness on voxel grid
 % V, E : vertices and edges
 % GV : voxel grid bottom left corners
 % l : edge lengths
 
-    h = zeros(size(l));
-%     side = [16 20 30]; % dale scene
-%     side = [40 40 36]; % non convex scene
-    side = [18 21 40]; % dogfight scene
-%     side = [12 21 40]; % dogfight scene barbell
-%     side = [20 20 15]; % canonical
-    half_voxel_width = abs(GV(1,1) - GV(2,1))/2;
-    voxel_width = abs(GV(1,1) - GV(2,1));
-    for i=1:size(E,1)
-        num_segments = ceil(l(i)/half_voxel_width)+1;
-        origin = V(E(i,1),:);
-        rep_origin = repmat(origin, num_segments, 1);
-        dest = V(E(i,2),:);
-        rep_end = repmat(dest, num_segments, 1);
+h = zeros(size(l));
 
-        rep_slope = rep_end - rep_origin;
-%         rep_norm_slope = rep_slope ./ vecnorm(rep_slope,2,2);
+X = reshape(GV(:,1),side);
+Y = reshape(GV(:,2),side);
+Z = reshape(GV(:,3),side);
 
-        t = linspace(0,1,num_segments);
-        st = rep_origin + rep_slope.*(transpose(t));
-        st = st-(repmat(min(GV),num_segments,1));
-        %st = unique(st,'rows');
-        st = round(st / voxel_width);
-        ind = st(:,1) + st(:,2)*side(1) + st(:,3)*side(1)*side(2);
-        ind = ind(ind > 0);
-        h(i) = -sum(H(ind+1))/size(st,1);
-    end
+origins = V(E(:,1),:);
+dests = V(E(:,2),:);
+segments = ceil(l/(w(1)/2));
 
-%     for i=1:size(E,1)
-%         for t=1:floor(l(i)/half_voxel_width)
-%             o = V(E(i,1),:);
-%             st = o+t*(half_voxel_width)*(V(E(i,2),:)-o)
-%             st = ceil(st-min(GV))
-%             ind = st(1) + st(2)*side(1) + st(3)*side(1)*side(2);
-%             h(i) = h(i) + H(ind);
-%         end
-%     end
-    
+rep_origins = repelem(origins,max(segments),1);
+rep_dests = repelem(dests,max(segments),1);
+
+rep_slopes = rep_dests - rep_origins;
+
+ts = zeros(size(segments,1),max(segments));
+
+% yuck
+for i=1:size(segments,1)
+    p = linspace(0,1,segments(i));
+    ts(i,1:numel(p)) = p;
+end
+
+% size(ts)
+
+tss = reshape(ts',size(ts,1)*size(ts,2),1);
+
+sts = rep_origins + rep_slopes.*tss;
+
+scs = interp3(X,Y,Z,reshape(H,side),sts(:,1),sts(:,2),sts(:,3));
+% size(H)
+% sc = scatteredInterpolant(GV(:,1),GV(:,2),GV(:,3),-H');
+% scs = sc(sts(:,1),sts(:,2),sts(:,3));
+
+h = sum(reshape(1-scs,max(segments),size(E,1)));
+% max(h)
+% min(h)
+% 
+% h = h./(2*segments)';
+% max(h)
+% min(h)
+
 end

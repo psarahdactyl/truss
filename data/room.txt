@@ -1,0 +1,2 @@
+../../meshes/childrens-room/1background-ground_002.stl
+../../meshes/childrens-room/0big-rocking-horse.stl

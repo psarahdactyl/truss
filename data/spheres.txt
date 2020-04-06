@@ -1,0 +1,5 @@
+../meshes/spheres/0background.stl
+../meshes/spheres/2Sphere_002.stl
+../meshes/spheres/3Sphere_004.stl
+../meshes/spheres/4Sphere_006.stl
+../meshes/spheres/5Sphere_007.stl

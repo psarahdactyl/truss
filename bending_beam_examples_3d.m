@@ -144,11 +144,12 @@ for i=1:6
 
     [fr,fc] = find(f~=0);
     fsum = sum(f(fr,:),1); % sum of forces
-
+    fsum = normalizerow(fsum);
+    
     MV = cross(EV,repmat(fsum,size(E,1),1)); % moment vectors
     MV = normalizerow(MV);
 
-    RV = cross(MV,EV); % rotation direction vector
+    RV = cross(MV,normalizerow(EV)); % rotation direction vector
     % RV = normalizerow(RV);
 
     l = edge_lengths(V,E); % objective

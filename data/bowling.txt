@@ -1,0 +1,3 @@
+meshes/bowling/11background-back.stl
+meshes/bowling/0pin.stl
+meshes/bowling/10ball.stl

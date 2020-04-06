@@ -1,4 +1,4 @@
-function [h segments] = edge_visibilities(V, E, GV, side, w, H, l)
+function [h segments] = edge_visibilities_old(V, E, GV, side, w, H, l)
 % H : hiddenness on voxel grid
 % V, E : vertices and edges
 % GV : voxel grid bottom left corners
@@ -33,10 +33,10 @@ tss = reshape(ts',size(ts,1)*size(ts,2),1);
 
 sts = rep_origins + rep_slopes.*tss;
 
-scs = interp3(X,Y,Z,reshape(H,side),sts(:,1),sts(:,2),sts(:,3));
-% size(H)
-% sc = scatteredInterpolant(GV(:,1),GV(:,2),GV(:,3),-H');
-% scs = sc(sts(:,1),sts(:,2),sts(:,3));
+% scs = interp3(X,Y,Z,reshape(H,side),sts(:,1),sts(:,2),sts(:,3));
+
+sc = scatteredInterpolant(GV(:,1),GV(:,2),GV(:,3),H');
+scs = sc(sts(:,1),sts(:,2),sts(:,3));
 
 h = sum(reshape(1-scs,max(segments),size(E,1)));
 % max(h)

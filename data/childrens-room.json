@@ -1,0 +1,29 @@
+{
+    "cameras": [],
+    "objects": [
+        {
+            "background": false,
+            "filename": "/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/0big-rocking-horse.stl",
+            "material": "wood",
+            "weight": 7.1
+        },
+        {
+            "background": false,
+            "filename": "/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/1cat-picture.stl",
+            "material": "wood",
+            "weight": 0.918
+        },
+        {
+            "background": false,
+            "filename": "/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/2chair.stl",
+            "material": "wood",
+            "weight": 2.5
+        },
+        {
+            "background": true,
+            "filename": "/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/3background-ground_001.stl",
+            "material": "wood",
+            "weight": -1.0
+        }
+    ]
+}

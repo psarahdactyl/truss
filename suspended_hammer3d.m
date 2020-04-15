@@ -54,20 +54,27 @@ bf = 1+size(RV,1)+(1:size(DV,1));
 sC = 5e1;
 sT = 5e1;
 % get areas, axial forces, lengths, nodal equilibrium matrix
-[a,n,l,BT] = groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:size(RV,1));
+% [a,n,l,BT] = groundstructure(V,E,f,bf,sC,sT,'IgnoredEdges',1:size(RV,1));
+% optimization
+[B,C] = create_nodal_equilibrium_matrices(V,E,bf);
+[A,b,Aeq,beq] = create_constraint_matrices(V,E,f,bf,sC,sT,sB);
+lengths = edge_lengths(V,E);
+[x,ar,ax,be] = optimize_lp(lengths,A,b,Aeq,beq,'cvx','IgnoredEdges',1:size(RV,1));
+% [x,ar,ax,be] = optimize_lp(lengths+EAs,A,b,Aeq,beq,'yalmip','IgnoredEdges',ig);
+
 
 naa = size(RV,1);
 av = 1 + (1:naa)';
 ae = (1:naa)';
 dim = size(V,2);
-fa = reshape(BT(av + size(V,1)*[0:dim-1],naa+1:end)*n(naa+1:end),[],dim);
+fa = reshape(B(av + size(V,1)*[0:dim-1],naa+1:end)*n(naa+1:end),[],dim);
 torque = normrow(sum(cross(fa,V(E(ae,2),:)-V(E(ae,1),:),2)))
 
 % find areas bigger than a certain threshold and place a cylinder there
 NZ = find(max(a,0)>1e-7);
 [CV,CF,CJ,CI] = edge_cylinders(V,E(NZ,:),'PolySize',10,'Thickness',sqrt(max(a(NZ),0)/pi));
 
-fbf = reshape(BT(bf(:) + [0:dim-1]*size(V,1),:)*n,[],dim);
+fbf = reshape(B(bf(:) + [0:dim-1]*size(V,1),:)*n,[],dim);
 
 clf;
 hold on;

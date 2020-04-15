@@ -17,14 +17,16 @@ function [EVs] = edge_visibilities(V, E, GV, side, w, Vs, l)
   %     structure
 
 
-  X = reshape(GV(:,1),side);
-  Y = reshape(GV(:,2),side);
-  Z = reshape(GV(:,3),side);
+  X = reshape(GV(:,1),side([2 1 3]));
+  Y = reshape(GV(:,2),side([2 1 3]));
+  Z = reshape(GV(:,3),side([2 1 3]));
 
   origins = V(E(:,1),:);
   dests = V(E(:,2),:);
-  segments = ceil(l/(w(1)/2));
+  % number of segments for each edge depending on lengths
+  segments = ceil(l/(w(1)));
 
+  % edge start and end points
   rep_origins = repelem(origins,max(segments),1);
   rep_dests = repelem(dests,max(segments),1);
 
@@ -39,10 +41,9 @@ function [EVs] = edge_visibilities(V, E, GV, side, w, Vs, l)
       ts(i,1:numel(p)) = p;
   end
 
-
   tss = reshape(ts',size(ts,1)*size(ts,2),1);
   sts = rep_origins + rep_slopes.*tss;
-  scs = interp3(X,Y,Z,reshape(Vs,side),sts(:,1),sts(:,2),sts(:,3));
+  scs = interp3(X,Y,Z,reshape(Vs,side([2 1 3])),sts(:,1),sts(:,2),sts(:,3));
 
   EVs = sum(reshape(1-scs,max(segments),size(E,1)));
 

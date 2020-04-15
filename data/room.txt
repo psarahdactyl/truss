@@ -1,2 +1,4 @@
-../../meshes/childrens-room/1background-ground_002.stl
-../../meshes/childrens-room/0big-rocking-horse.stl
+/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/3background-ground_001.stl
+/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/0big-rocking-horse.stl
+/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/1cat-picture.stl
+/Users/sak/Documents/siggraph2020/truss-opt/data/meshes/room/2chair.stl

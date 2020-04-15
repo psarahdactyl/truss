@@ -4,63 +4,72 @@ close all
 clf
 hold on
 
-filename = ...
-    "data/spheres.txt";
 
-% read scene and plot the objects
-[objs,bb] = read_scene(filename);
+objs = cell(2,2);
+% [V,F] = readSTL('data/meshes/barbell.stl');
+[V,F] = readOBJ('hammer.obj');
+[SV,SVI,SVJ] = remove_duplicate_vertices(V,1e-7);
+SF = SVJ(F);
+objs{2,1} = SV;
+objs{2,2} = SF;
+
+[WV,WF] = create_regular_grid(2,2);
+WV(:,3) = 0;
+WV = WV*7;
+
+objs{1,1} = WV;
+objs{1,2} = WF;
+size(objs)
+
 [AV,AF,ACV,ACF,coms] = list_to_mesh(objs);
 [RV,RF,~] = list_to_mesh(objs(2:end,:));
 
 % generate views
+% % x between -1 and 1, y between 0 and 1, z at 5.5
 % [gx,gy] = meshgrid([-2.5:-.5:-5.5],[3:.5:5]);
-% [gx,gy] = meshgrid([-3:-.5:-5],[3:.5:5]);
-% [gx,gy] = meshgrid([-6:-.5:-8],[3:.5:5]);
-% [gx,gy] = meshgrid([-6:-.5:-8],[1:.5:3]);
-[gx,gy] = meshgrid([-1:.5:1],[-1:.5:1]);
-% [gx,gy] = meshgrid(-1:.2:1,0:.2:1);
-gx = gx(:);
-gy = gy(:);
-views = [gx, gy, 5.5*ones(length(gx),1)];
-% views = [-4,4,4] % for debugging
+% % [gx,gy] = meshgrid([-3:-.5:-5],[3:.5:5]);
+% % [gx,gy] = meshgrid(-1:.2:1,0:.2:1);
+% gx = gx(:);
+% gy = gy(:);
+% views = [gx, gy, 5.5*ones(length(gx),1)];
+views = [4,2,-10] % for debugging
 
 % compute visibility of scene
 [Vs,GV,side,w] = scene_visibility(AV,AF,RV,RF,views);
 
 %%
+% DF = objs{1,2}; % wall mesh is always the first mesh
+% DV = objs{1,1};
+% 
+% RV = objs{2,1}; % object mesh
+% RF = objs{2,2};
+% 
+% % this creates the ground structure, (V,E), including the center of mass
+% [I,J] = find(ones(size(RV,1),size(DV,1)));
+% 
+% % find centroid of object on which to apply force (gravity)
+% cm = centroid(RV,RF);
+% V = [cm;RV;DV];
+% E = [ones(size(RV,1),1) 1+(1:size(RV,1))';1+[I size(RV,1)+J]];
+% % size(E)
 
 force = [0 -9.8 0];
-[V,E,VC,bf] = construct_ground_structure(AV,AF,ACV,ACF);
+[V,E,f,bf,ig] = construct_ground_structure(AV,AF,ACV,ACF,coms,force);
 % size(V)
 % size(E)
 % return 
 
-%   V = [1 3 1; 4 2 1;4 4 1;8 2 1;8 4 1]
-%   E = [1 2;
-%        1 3;
-%        1 4;
-%        1 5;
-%        2 5;
-%        2 4;
-%        3 4;
-%        3 5]
-%   ACV = [1;2;2;3;3]
-%   VC = [1;2;2;3;3]
-%   coms = [1 1 1; 4 3 1; 8 3 1];
-  
-%   V = [1 3 1; 4 2 1;4 4 1;8 3 1]
-%   E = [1 2;
-%        1 3;
-%        2 4;
-%        3 4]
-%   ACV = [1;2;2;3]
-%   VC = [1;2;2;3]
-%   coms = [1 1 1; 4 3 1; 8 3 1];
+% % nodal forces, boundary vertices, stress limits
+% f = zeros(size(V));
+% bl = snap_points(cm,V); % find closest vertex in ground structure to the COM
+% f(bl,2) = -9.8;
+% bf = 1+size(RV,1)+(1:size(DV,1)); 
+% ig = 1:size(RV,1);
 
 % yield stresses
 sC = 1e2;
 sT = 1e2;
-sB = 1e3;
+sB = 1e2;
 
 %%
 % bar lengths
@@ -69,7 +78,7 @@ lengths = edge_lengths(V,E);
 % bar visibilities
 EVs = edge_visibilities(V,E,GV,side,w,Vs,lengths);
 
-% % function of visibility
+% function of visibility
 % fv = @(X) X.^3;
 % fv = @(X) exp(X);
 fv = @(X) (X);
@@ -80,26 +89,13 @@ fv = @(X) (X);
 
 %%
 % optimization
-% [S,G,C,B] = create_nodal_equilibrium_matrices(V,E,VC,coms);
-[A,b,Aeq,beq] = create_constraint_matrices(V,E,VC,coms,sC,sT,sB);
-
-% m=size(E,1);
-% TT = [sparse(size(B,1),m) B sparse(size(B,1),m)];
-% Aeq=B;
-% beq=[zeros(3,1);[0 -9.8 0]'];
-
-% [x,ar,ax,be] = optimize_lp(lengths,A,b,Aeq,beq,'yalmip');
-[x,ar,ax,be] = optimize_lp(lengths+EAs,A,b,Aeq,beq,'linprog');
-
-% naa = size(objs{2,1},1);
-% av = 1 + (1:naa)';
-% ae = (1:naa)';
-% dim = size(V,2);
-% fa = reshape(BT(av + size(V,1)*[0:dim-1],naa+1:end)*ax(naa+1:end),[],dim);
-% torque = normrow(sum(cross(fa,V(E(ae,2),:)-V(E(ae,1),:),2)))
+[B,C] = create_nodal_equilibrium_matrices(V,E,bf);
+[A,b,Aeq,beq] = create_constraint_matrices(V,E,f,bf,sC,sT,sB);
+% [x,ar,ax,be] = optimize_lp(lengths,A,b,Aeq,beq,'cvx','IgnoredEdges',ig);
+[x,ar,ax,be] = optimize_lp(lengths+EAs,A,b,Aeq,beq,'yalmip','IgnoredEdges',ig);
 
 % find areas bigger than a certain threshold and place a cylinder there
-NZ = find(max(ar,0)>1e-5);
+NZ = find(max(ar,0)>1e-7);
 num_rods = size(NZ,1)
 num_compression = sum(sign(ax(NZ))==1)
 num_tension = sum(sign(ax(NZ))==-1)
@@ -120,7 +116,7 @@ hold on
 %     'FaceVertexCData',MC,falpha(0.8,0),fsoft);
 
 % CM = cbrewer('Set1',max(AC));
-CM = cbrewer('Blues',max(ACV));
+CM = cbrewer('Greens',max(ACV));
 
 tsurf(AF,AV,'FaceVertexCData',CM(ACF,:),falpha(0.6,0),fsoft);
   
@@ -128,13 +124,10 @@ plot_groundstructure(V,E,ar,ax);
 % plot_edges(V,E,'Color','#848484','LineWidth',0.001);
 
 % plot boundary conditions
-bf = 1:size(V(VC==1));
-scatter3(V(bf,1),V(bf,2),V(bf,3),'.b','SizeData',50);
+scatter3(V(bf,1),V(bf,2),V(bf,3),'.b','SizeData',200);
 
 % plot force
-f = zeros(size(coms(2:end,:)));
-f(:,2) = -9.8;
-quiver3(coms(2:end,1),coms(2:end,2),coms(2:end,3),f(:,1)*0.1,f(:,2)*0.1,f(:,3)*0.1,'r','LineWidth',1,'AutoScale','off')
+quiver3(V(:,1),V(:,2),V(:,3),f(:,1)*0.1,f(:,2)*0.1,f(:,3)*0.1,'r','LineWidth',3,'AutoScale','off')
     
 % plot other vertices
 scatter3(V(:,1),V(:,2),V(:,3),'.k','SizeData',50);
@@ -171,8 +164,8 @@ cameratoolbar('setmode','orbit')
 camproj('perspective')
 caxis([-1 1])
 % colormap(flipud(cbrewer('Blues',256)))
-% colormap(flipud(cbrewer('Dark2',256)))
-colormap(flipud(cbrewer('RdBu',256)))
+colormap(flipud(cbrewer('Dark2',256)))
+% colormap(flipud(cbrewer('RdBu',256)))
 title(...
   sprintf('Vol: %g, #bars: %d out of %i edges',lengths'*ar,numel(NZ),size(E,1)),...
   'FontSize',20);

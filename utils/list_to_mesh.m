@@ -6,22 +6,23 @@
 % AV, AF - the vertices and faces
 function [AV,AF,ACV,ACF,coms] = list_to_mesh(objs)
 
-AV=[];
-AF=[];
-ACV=[];
-ACF=[];
-coms = zeros(size(objs,1),3);
+  AV=[];
+  AF=[];
+  ACV=[];
+  ACF=[];
+  coms = zeros(size(objs,1),3);
 
-for m = 1:length(objs)
-  Vm = objs{m,1};
-  Fm = objs{m,2};
-  AF = [AF; Fm+size(AV,1)];
-  AV = [AV; Vm];
-  ACV = [ACV; repmat(m,size(Vm,1),1)];
-  ACF = [ACF; repmat(m,size(Fm,1),1)];
-  % find centroid of object on which to apply force (gravity)
-  com = centroid(Vm,Fm);
-  coms(m,:) = com;
-end
+  for m = 1:size(objs,1)
+    Vm = objs{m,1};
+    Fm = objs{m,2};
+    AF = [AF; Fm+size(AV,1)];
+    AV = [AV; Vm];
+    ACV = [ACV; repmat(m,size(Vm,1),1)];
+    ACF = [ACF; repmat(m,size(Fm,1),1)];
+    % find centroid of object on which to apply force (gravity)
+%     com = centroid(Vm,Fm);
+    com = mean(Vm,1);
+    coms(m,:) = com;
+  end
 
 end

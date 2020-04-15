@@ -1,13 +1,12 @@
-function [A,b,Aeq,beq] = create_constraint_matrices(V,E,f,bf,sC,sT,sB)
+function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,sC,sT,sB,varargin)
   % CREATE_CONSTRAINT_MATRICES 
   % 
   %
   % Inputs:
-  %   V  #V by dim list of vertex positions
-  %   E  #E by 2 list of edges indices into V
-  %   f  #V by dim list of forces on each vertex
-  %   bf #bf by 1 list of vertex indices which will be "fixed" (can
-  %     withstand infinite force
+  %   V   #V by dim list of vertex positions
+  %   E   #E by 2 list of edges indices into V
+  %   ACV #AV by 1 list of object indices into rows of AV
+  %   coms #max(ACV) by 3 list of each object's center of mass
   %   sC,sT,sB scalars representing the compression, tension, bending yield
   %     stress, respectively
 
@@ -18,31 +17,86 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,f,bf,sC,sT,sB)
   %   Aeq #V*dim by 3*m equality matrix (force balance)
   %   beq #V*dim by 1 vectorized force matrix
   
-  n = size(V,1);
+  bending=1;
+  
+  % Map of parameter names to variable names
+  params_to_variables = containers.Map( ...
+    {'Bending'}, ...
+    {'bending'});
+  v = 1;
+  while v <= numel(varargin)
+    param_name = varargin{v};
+    if isKey(params_to_variables,param_name)
+      assert(v+1<=numel(varargin));
+      v = v+1;
+      % Trick: use feval on anonymous function to use assignin to this workspace
+      feval(@()assignin('caller',params_to_variables(param_name),varargin{v}));
+    else
+      error('Unsupported parameter: %s',varargin{v});
+    end
+    v=v+1;
+  end
+  
+%   n = size(V,1);
   m = size(E,1);
-  nf = size(f,3);
+  nf = 1;
 
   I = speye(m,m); % m x m identity matrix 
   Z = sparse(m,m); % m x m zero matrix
   
   l = edge_lengths(V,E); % lengths
   L = spdiags(1./l(:),0,m,m);
+  
+%   A = [repmat(-sC*I,nf,1), -I;...
+%        repmat(-sT*I,nf,1),  I];
+%   b = zeros(2*m*nf,1);
 
-  A = [repmat(-sC*L,nf,1), -I,  Z;...
-       repmat(-sT*L,nf,1),  I,  Z;...
-       repmat(-sB*L,nf,1),  Z, -I;...
-       repmat(-sB*L,nf,1),  Z,  I];
+  A = [repmat(-sC*I,nf,1), -I,  Z,  Z;...
+       repmat(-sT*I,nf,1),  I,  Z,  Z;...
+       repmat(-sB*L,nf,1),  Z, -I,  Z;...
+       repmat(-sB*L,nf,1),  Z,  I,  Z;...
+       repmat(-sB*L,nf,1),  Z,  Z, -I;...
+       repmat(-sB*L,nf,1),  Z,  Z,  I];
+  b = zeros(6*m*nf,1);
+  
+  [S,G,C,B] = create_nodal_equilibrium_matrices(V,E,ACV,coms);
+  
+  % S*C is 3*k x m
+  % S*B is 3*k x 2*m
+  
+%   FE = [sparse(3*(max(ACV )-1),m) S*C];% S*B];
+%   TE = [sparse(3*(max(ACV)-1),m) G*NC];% G*B];
+  
+  FE = [sparse(3*(max(ACV)-1),m) S*C S*B];
+  TE = [sparse(3*(max(ACV)-1),m) G*C G*B];
+  
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  % bending+tension/compression+torque
+  
+  Aeq = [FE;TE];
+  beq = [repmat([0 -9.8 0]',max(ACV)-1,1);zeros(3*(max(ACV)-1),1)];
 
-  b = zeros(4*m*nf,1);
+%   Aeq = [sparse(size(T,1)+size(F,1),m) [F;T]]; % 6 by m [0 t;f 0]*[a;n] = [0;-f]
+%   beq = [repmat([0 -9.8 0]',max(ACV)-1,1);zeros(3*(max(ACV)-1),1)];
+       
+  size(Aeq)
+  size(beq)
+  % weights
+  beq(1:3,:) = beq(1:3,:)*7.1;
+  beq(4:6,:) = beq(4:6,:)*0.9;
+  beq(7:9,:) = beq(7:9,:)*2.5;
   
-  [BT,CT] = create_nodal_equilibrium_matrices(V,E,bf); % already here the fixed vertices have been removed
-  f(bf,:,:) = []; % must remove relevant rows in the force vector too
-  
-  B = [sparse(size(BT,1),m) BT sparse(size(BT,1),m)];
-  C = [sparse(size(CT,1),2*m) CT];
-  
-  Aeq = B+C;
-  beq = f(:);
+
+%   if bending==1
+%     Aeq = FE+TE;
+%     beq = [zeros(3,1);[0 -9.8 0]'];
+%   else
+%     Aeq = FE;  
+%     beq = [0 -9.8 0]';
+%   end
+   
   
 
 end

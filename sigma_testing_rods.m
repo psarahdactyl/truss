@@ -13,6 +13,12 @@ hold on
 % V = [0 0 0;
 %     1 -2 3];
 
+% V = [0 0 0;
+%     1 1 1];
+  
+V = [0 0 0;
+    -1 -1 -1];
+
 E = [1 2];
 
 dim = 3;
@@ -32,10 +38,47 @@ EV = V(E(:,2),:)-V(E(:,1),:); % edge vectors
 [fr,fc] = find(f~=0);
 fsum = sum(f(fr,:),1); % sum of forces
 
-MV = cross(EV,repmat(fsum,size(E,1),1)); % moment vectors
-MV = normalizerow(MV);
+%%%%%%%%%%%%%%%
+bv = null(EV)
 
-RV = cross(MV,EV); % rotation direction vector
+norm(bv(:,1))
+norm(bv(:,2))
+
+% % plotting
+% [CV,CF,CJ,CI] = edge_cylinders(V,E, ...
+%     'PolySize',10,'Thickness',0.1);
+%   tsurf(CF,CV,falpha(1,0.05),'CData',1);
+%   
+% scatter3(V(bf,1),V(bf,2),V(bf,3),'.b','SizeData',1000);
+%   
+% quiver3(V(:,1),V(:,2),V(:,3),f(:,1),f(:,2),f(:,3),...
+%     0.5,'r','LineWidth',3);
+% 
+% p = V(2,:);
+% quiver3(p(1),p(2),p(3),bv(1,1),bv(2,1),bv(3,1),...
+%     0.5,'b','LineWidth',3);
+% 
+% quiver3(p(1),p(2),p(3),bv(1,2),bv(2,2),bv(3,2),...
+%     0.5,'c','LineWidth',3);
+% 
+% view(-90.351, 67.466)
+% axis equal
+% colormap(flipud(cbrewer('RdBu',256)))
+% caxis([-1 1])
+% camup([0 1 0])
+% cameratoolbar('SetCoordSys','y') 
+% cameratoolbar('setmode','orbit')
+% camproj('perspective');
+% return
+%%%%%%%%%%%%%%
+
+fsum = normalizerow(fsum);
+MV = cross(EV,repmat(fsum,size(E,1),1)); % moment vectors
+% MV = normalizerow(MV);
+
+RV = cross(MV,normalizerow(EV)); % rotation direction vector
+RV
+norm(RV)
 % RV = normalizerow(RV);
 
 l = edge_lengths(V,E); % length
@@ -56,14 +99,14 @@ ff(bf,:,:) = [];
 % a = pi*r^2
 B = full(BT);
 ax = linsolve(B,ff');
-sigma_tension = (ax * l) / (pi*r^2)
+sigma_tension = (ax * l) / (pi*r^2);
 
 % sigma * a / l = m
 C = full(CT);
 be = linsolve(C,ff');
-sigma_bending = (be * l) / (pi*r^2)
+sigma_bending = (be * l) / (pi*r^2);
 
-ratio = sigma_bending/sigma_tension
+ratio = sigma_bending/sigma_tension;
 end
 
 % plotting
@@ -77,12 +120,17 @@ quiver3(V(:,1),V(:,2),V(:,3),f(:,1),f(:,2),f(:,3),...
     0.5,'r','LineWidth',3);
 
 p = V(2,:);
-quiver3(p(1),p(2),p(3),MV(:,1),MV(:,2),MV(:,3),...
+% quiver3(p(1),p(2),p(3),MV(:,1),MV(:,2),MV(:,3),...
+%     0.5,'b','LineWidth',3);
+% 
+% quiver3(p(1),p(2),p(3),RV(:,1),RV(:,2),RV(:,3),...
+%     0.5,'c','LineWidth',3);% p = V(2,:);
+
+quiver3(p(1),p(2),p(3),bv(1,1),bv(2,1),bv(3,1),...
     0.5,'b','LineWidth',3);
 
-quiver3(p(1),p(2),p(3),RV(:,1),RV(:,2),RV(:,3),...
+quiver3(p(1),p(2),p(3),bv(1,2),bv(2,2),bv(3,2),...
     0.5,'c','LineWidth',3);
-
 
 view(-90.351, 67.466)
 axis equal

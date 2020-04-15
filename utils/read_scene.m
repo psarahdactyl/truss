@@ -14,7 +14,8 @@ function [objs, bb] = read_scene(filename)
     for i=1:size(txt{1},1)
         p =path+"/"+txt{1}{i};
         p
-        [V,F] = readSTL(p);
+        txt{1}{i}
+        [V,F] = readSTL(txt{1}{i});
         [SV,SVI,SVJ] = remove_duplicate_vertices(V,1e-7);
         SF = SVJ(F);
         mm(i,:) = min(SV);

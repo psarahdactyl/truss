@@ -43,8 +43,14 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   nf = 1;
   
  % set up objective
+ bending=1;
+
  obj(ignored_edges) = 0;
- f = [obj;zeros(2*m*nf,1)];
+ if(bending==1)
+  f = [obj;zeros(3*m*nf,1)];
+ elseif(bending==0)
+  f = [obj;zeros(m*nf,1)];
+ end
  
  % set upper and lower bounds
  lb = [zeros(m,1);-inf(2*m,1)];
@@ -60,32 +66,52 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
  
  switch solver
      case 'yalmip'
-       xo = sdpvar(3*m,1);
-       Constraints = [A * xo <= b, Aeq * xo == beq];
-       Objective = f' * xo;
+       if(bending==1)
+         xo = sdpvar(4*m,1);
+         Constraints = [A * xo <= b, Aeq * xo == beq];
+         Objective = f' * xo;
+         options = sdpsettings('verbose',1);
+         sol = optimize(Constraints,Objective,options);
+         save('everything.mat','A','b','Aeq','beq','f');
+         
+         % Analyze error flags
+         if sol.problem == 0
+           % Extract and display value
+           x = value(xo);
+           ar = x(1:m);
+           ax = reshape(x(m+(1:m*nf)),m,nf);
+           be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
+         else
+           display('Hmm, something went wrong!');
+           sol.info
+           yalmiperror(sol.problem)
+         end
+       elseif(bending==0)
+         xo = sdpvar(2*m,1);
+         Constraints = [A * xo <= b, Aeq * xo == beq];
+         Objective = f' * xo;
+         options = sdpsettings('verbose',1);
 
-       % Set some options for YALMIP and solver
-       options = sdpsettings('verbose',1);
+         sol = optimize(Constraints,Objective,options);
 
-       sol = optimize(Constraints,Objective,options);
-
-       % Analyze error flags
-       if sol.problem == 0
-         % Extract and display value
-         x = value(xo);
-         ar = x(1:m);
-         ax = reshape(x(m+(1:m*nf)),m,nf);
-         be = reshape(x(2*m+(1:m*nf)),m,nf);
-       else
-         display('Hmm, something went wrong!');
-         sol.info
-         yalmiperror(sol.problem)
+         % Analyze error flags
+         if sol.problem == 0
+           % Extract and display value
+           x = value(xo);
+           ar = x(1:m);
+           ax = reshape(x(m+(1:m*nf)),m,nf);
+           be =[];
+         else
+           display('Hmm, something went wrong!');
+           sol.info
+           yalmiperror(sol.problem)
+         end
        end
 
      case 'cvx'
         cvx_begin
-        cvx_solver mosek
-          variable x(3*m);
+%         cvx_solver mosek
+          variable x(4*m);
           minimize( f' * x );
           subject to
             A * x <= b;
@@ -93,15 +119,20 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
         cvx_end
         ar = x(1:m);
         ax = reshape(x(m+(1:m*nf)),m,nf);
-        be = reshape(x(2*m+(1:m*nf)),m,nf);
+        be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
         
      case 'linprog'
+       size(A)
+       size(b)
+       size(Aeq)
+       size(beq)
         [x,~,flags,output] = linprog(f,A,b,...
-            Aeq,beq, ...
-            lb,ub);
+            Aeq,beq);%, ...
+%             lb,ub);
         ar = x(1:m);
         ax = reshape(x(m+(1:m*nf)),m,nf);
-        be = reshape(x(2*m+(1:m*nf)),m,nf);
+        be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
+%         be = [];
  end
 
 end

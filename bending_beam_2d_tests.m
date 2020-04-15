@@ -12,27 +12,27 @@ clf
 %
 % 
 
-% radius = [7 6];
-% theta = 0:pi/10:2*pi;
-% xs = 1 * cos(theta) + radius(1);
-% ys = 1 * sin(theta) + radius(2);
-% 
-% nw = 9; % number of wall points
-% 
-% V = [radius;  % com
-%     xs' ys'; % circle points (21)
-%     zeros(nw,1) 1+(1:nw)']; % wall points
-% 
-% E = [ones(size(xs,2),1) 1+(1:size(xs,2))';
-%     repmat(1+(1:size(xs,2))',nw,1) repelem((2+size(xs,2):size(V,1))',size(xs,2),1)];
-% 
-% f = zeros(size(V,1),2);
-% f(1,2) = -9.8;
-% bf = 2+size(xs,2):size(V,1);
-% 
-% ignored_edges = 1:size(xs,2);
+radius = [7 3];
+theta = 0:pi/10:2*pi;
+xs = 1 * cos(theta) + radius(1);
+ys = 1 * sin(theta) + radius(2);
 
-% plot_edges(V,E(1+size(xs,2):end,:));
+nw = 3; % number of wall points
+
+V = [radius;  % com
+    xs' ys'; % circle points (21)
+    zeros(nw,1) 1+(1:nw)']; % wall points
+
+E = [ones(size(xs,2),1) 1+(1:size(xs,2))';
+    repmat(1+(1:size(xs,2))',nw,1) repelem((2+size(xs,2):size(V,1))',size(xs,2),1)];
+
+f = zeros(size(V,1),2);
+f(1,2) = -9.8;
+bf = 2+size(xs,2):size(V,1);
+
+ignored_edges = 1:size(xs,2);
+
+plot_edges(V,E(1+size(xs,2):end,:));
 % return
 
 %%%%%%%%%%%%%
@@ -60,16 +60,16 @@ clf
 %        v        %
 % 1 ---- 2 ---- 3 %(lengths = 2,2)
 %
-V = [0 0;
-    2 0;
-    4 0];
- 
-E = [1 2;
-    2 3];
-
-f = zeros(size(V,1),2);
-f(2,2) = -9.8;
-bf = [1 3];
+% V = [0 0;
+%     2 0;
+%     4 0];
+%  
+% E = [1 2;
+%     2 3];
+% 
+% f = zeros(size(V,1),2);
+% f(2,2) = -9.8;
+% bf = [1 3];
 
 %         |
 %         v
@@ -186,9 +186,9 @@ bf = [1 3];
 
 % plot_edges(V,E);
  
-sC = 1e2;
-sT = 1e2;
-sB = 1e2;
+sC = 1e3;
+sT = 1e3;
+sB = 1e4;
 
 dim=2;
 n = size(V,1);
@@ -209,7 +209,8 @@ l = edge_lengths(V,E); % objective
   
 BT = sparse(E(:)+n*(0:dim-1),repmat(1:m,dim,2)',[EV;-EV],dim*n,m);
 CT = sparse(E(:)+n*(0:dim-1),repmat(1:m,dim,2)',[PV;-PV],dim*n,m);
-% return
+
+OBT = BT;
 
 % remove fixed vertices
 bf = bf(:);
@@ -232,16 +233,16 @@ A = [repmat(-sC*diag(1./l),nf,1), -I, Z; ...
     repmat(-sB*diag(1./l),nf,1), Z, I];
 b = zeros(4*m*nf,1);
 
-% ig_ind = vec(ignored_edges(:)+m*(0:1))+m*(0:nf-1);
-% Anb(ig_ind,:) = [];
-% bnb(ig_ind,:) = [];
-% 
-% big_ig_ind = [ignored_edges;
-%     ignored_edges+m;
-%     ignored_edges+2*m;
-%     ignored_edges+3*m];
-% A(big_ig_ind(:),:) = [];
-% b(big_ig_ind(:),:) = [];
+ig_ind = vec(ignored_edges(:)+m*(0:1))+m*(0:nf-1);
+Anb(ig_ind,:) = [];
+bnb(ig_ind,:) = [];
+
+big_ig_ind = [ignored_edges;
+    ignored_edges+m;
+    ignored_edges+2*m;
+    ignored_edges+3*m];
+A(big_ig_ind(:),:) = [];
+b(big_ig_ind(:),:) = [];
 
 B = [sparse(size(BT,1),m) BT sparse(size(BT,1),m)];
 Bnb = [sparse(size(BT,1),m) BT];
@@ -290,6 +291,13 @@ C = [sparse(size(CT,1),2*m) CT];
 arnb = an(1:m);
 axnb = reshape(an(m+(1:m*nf)),m,nf);
 
+% naa = size(xs,2);
+% av = 1 + (1:naa)';
+% ae = (1:naa)';
+% fa = reshape(BT(av + size(V,1)*[0 1],naa+1:end)*axnb(naa+1:end),[],2);
+% cross2 = @(A,B) A(:,1).*B(:,2)-A(:,2).*B(:,1);
+% torque = sum(cross2(fa,V(E(ae,2),:)-V(E(ae,1),:)))
+
 %%%%%%% with bending %%%%%%%%
 [anwb,~,flags,output] = linprog([l;zeros(2*m*nf,1)],A,b,...
   B+C,ff(:), ...
@@ -298,6 +306,13 @@ axnb = reshape(an(m+(1:m*nf)),m,nf);
 ar = anwb(1:m);
 ax = reshape(anwb(m+(1:m*nf)),m,nf);
 be = reshape(anwb(2*m+(1:m*nf)),m,nf);
+
+% naa = size(xs,2);
+% av = 1 + (1:naa)';
+% ae = (1:naa)';
+% fa = reshape(BT(av + size(V,1)*[0 1],naa+1:end)*ar(naa+1:end),[],2);
+% cross2 = @(A,B) A(:,1).*B(:,2)-A(:,2).*B(:,1);
+% torque = sum(cross2(fa,V(E(ae,2),:)-V(E(ae,1),:)))
 
 
 tiledlayout(2,1) 

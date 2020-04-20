@@ -19,12 +19,12 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   %   ax m by 1 vector of rod axial forces (m+1:2*m of x)
   %   be m by 1 vector of rod bending forces (2*m+1:3*m of x)
 
+   bending = 1;
   
-  ignored_edges = [];
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'IgnoredEdges'}, ...
-    {'ignored_edges'});
+    {'bending'}, ...
+    {'Bending'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -43,9 +43,6 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   nf = 1;
   
  % set up objective
- bending=1;
-
- obj(ignored_edges) = 0;
  if(bending==1)
   f = [obj;zeros(3*m*nf,1)];
  elseif(bending==0)
@@ -55,14 +52,6 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
  % set upper and lower bounds
  lb = [zeros(m,1);-inf(2*m,1)];
  ub = [inf*ones(m,1);inf(2*m,1)];
- 
- % remove ignored edges from constraint matrices
- big_ig_ind = [ignored_edges;
-    ignored_edges+m;
-    ignored_edges+2*m;
-    ignored_edges+3*m];
- A(big_ig_ind(:),:) = [];
- b(big_ig_ind(:),:) = [];
  
  switch solver
      case 'yalmip'
@@ -129,10 +118,20 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
         [x,~,flags,output] = linprog(f,A,b,...
             Aeq,beq);%, ...
 %             lb,ub);
-        ar = x(1:m);
-        ax = reshape(x(m+(1:m*nf)),m,nf);
-        be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
-%         be = [];
+        if(~isempty(x))
+          ar = x(1:m);
+          ax = reshape(x(m+(1:m*nf)),m,nf);
+          if(bending==1)
+            be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
+          else
+            be=[]
+          end
+        else
+          x = [];
+          ar = [];
+          ax = [];
+          be = [];
+        end
  end
 
 end

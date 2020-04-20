@@ -11,7 +11,7 @@ function [AV,AF,ACV,ACF,coms] = list_to_mesh(objs)
   ACV=[];
   ACF=[];
   coms = zeros(size(objs,1),3);
-
+  
   for m = 1:size(objs,1)
     Vm = objs{m,1};
     Fm = objs{m,2};

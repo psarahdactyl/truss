@@ -1,4 +1,4 @@
-function [V,E,VC,bf] = construct_ground_structure(AV,AF,ACV,ACF)
+function [V,E,VC] = construct_ground_structure(AV,AF,ACV,ACF)
   % CONSTRUCT_GROUND_STRUCTURE
   % 
   %
@@ -17,19 +17,22 @@ function [V,E,VC,bf] = construct_ground_structure(AV,AF,ACV,ACF)
   
   % create ground structure edges
   % loop over each object and gather samples into V
-  
-  bf=1:size(find(ACV==1),1);
-  
+    
 %   XX = [AV(ACV==1,:)];
 %   XC = [ACV(ACV==1)];
 
   XX = [];
   XC = [];
 
-  n = 7;
+  n = 5;
   for ci = 1:max(ACV)
     [Vc,~,~,Fc] = remove_unreferenced(AV,AF(ACF==ci,:));
-    [Xc,~,~] = blue_noise(n*sum(doublearea(Vc,Fc)),Vc,Fc,'Seed',rand);
+    if(n*sum(doublearea(Vc,Fc))<6)
+      num=6;
+    else
+      num=n*sum(doublearea(Vc,Fc));
+    end
+    [Xc,~,~] = blue_noise(num,Vc,Fc,'Seed',rand);
     XX = [XX;Xc];
     XC = [XC;repmat(ci,size(Xc,1),1)];
   end
@@ -50,5 +53,7 @@ function [V,E,VC,bf] = construct_ground_structure(AV,AF,ACV,ACF)
   
   V=XX;
   VC=XC;
+  
+%   [V,E] =  prune_edges(V,E);
     
 end

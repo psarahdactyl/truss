@@ -1,4 +1,4 @@
-function plot_groundstructure(V,E,a,n)
+function [CV,CF] = plot_groundstructure(V,E,a,n)
 
 EV = normalizerow(V(E(:,2),:)-V(E(:,1),:));
 m = size(E,1);

@@ -1,0 +1,22 @@
+/meshes/planes/0ang-plane-mobile_001.stl 0
+/meshes/planes/1ang-plane-mobile_002.stl 0
+/meshes/planes/2ang-plane-mobile_003.stl 0
+/meshes/planes/3ang-plane-mobile_004.stl 0
+/meshes/planes/4ang-plane-mobile_005.stl 0
+/meshes/planes/5ang-plane-mobile_006.stl 0
+/meshes/planes/6ang-plane-mobile_007.stl 0
+/meshes/planes/7ang-plane-mobile_008.stl 0
+/meshes/planes/8ang-plane-mobile_009.stl 0
+/meshes/planes/9ang-plane-mobile_010.stl 0
+/meshes/planes/10ang-plane-mobile_014.stl 0
+/meshes/planes/11ang-plane-mobile_015.stl 0
+/meshes/planes/12ang-plane-mobile_016.stl 0
+/meshes/planes/13ang-plane-mobile_017.stl 0
+/meshes/planes/14ang-plane-mobile_019.stl 0
+/meshes/planes/15ang-plane-mobile_020.stl 0
+/meshes/planes/16ang-plane-mobile_021.stl 0
+/meshes/planes/17ang-plane-mobile_022.stl 0
+/meshes/planes/18ang-plane-mobile_023.stl 0
+/meshes/planes/19ang-plane-mobile_024.stl 0
+/meshes/planes/21background.stl 1
+6.469642162322998 -6.83052396774292 0.6574490666389465

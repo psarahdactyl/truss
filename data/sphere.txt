@@ -1,2 +1,2 @@
-meshes/spheres/0background.stl
-meshes/spheres/2Sphere_006.stl
+meshes/spheres/0background.stl 1
+meshes/spheres/2Sphere_006.stl 0

@@ -2,21 +2,6 @@
 /meshes/airport/1Airplane.stl 0
 /meshes/airport/2Airplane_001.stl 0
 /meshes/airport/3earth_001.stl 0
-/meshes/airport/4Airplane_002.stl 0
-/meshes/airport/5clouds_01_Plane.stl 0
-/meshes/airport/6clouds_01_Plane_001.stl 0
-/meshes/airport/7clouds_01_Plane_002.stl 0
-/meshes/airport/8clouds_01_Plane_003.stl 0
-/meshes/airport/9clouds_01_Plane_004.stl 0
-/meshes/airport/10clouds_01_Plane_005.stl 0
-/meshes/airport/11briefcase.stl 0
-/meshes/airport/12briefcase_001.stl 0
-/meshes/airport/13suitcase.stl 0
-/meshes/airport/14suitcase_001.stl 0
-/meshes/airport/15shoes_010.stl 0
-/meshes/airport/16shoes_011.stl 0
-/meshes/airport/17Sandal_Cube_035.stl 0
-/meshes/airport/18Sandal_Cube_000.stl 0
 -261.1703186035156 0.0 0.0
 -200.96934509277344 0.0 0.0
 -124.24337768554688 0.0 0.0

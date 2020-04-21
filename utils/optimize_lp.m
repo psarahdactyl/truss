@@ -1,4 +1,4 @@
-function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
+function [x,ar,ax,be,fval] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   % OPTIMIZE_LP 
   % 
   %
@@ -10,6 +10,7 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   %   b   4*m by 1 vector of 0's
   %   Aeq #V*dim by 3*m equality matrix (force balance)
   %   beq #V*dim by 1 vectorized force matrix
+  %   fval  objective of output
   
 
   % Outputs:
@@ -111,18 +112,14 @@ function [x,ar,ax,be] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
         be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
         
      case 'linprog'
-       size(A)
-       size(b)
-       size(Aeq)
-       size(beq)
-        [x,~,flags,output] = linprog(f,A,b,...
+        [x,fval,flags,output] = linprog(f,A,b,...
             Aeq,beq);%, ...
 %             lb,ub);
         if(~isempty(x))
           ar = x(1:m);
           ax = reshape(x(m+(1:m*nf)),m,nf);
           if(bending==1)
-            be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
+            be = reshape(x(2*m+(1:2*m*nf)),m,2,nf);
           else
             be=[]
           end

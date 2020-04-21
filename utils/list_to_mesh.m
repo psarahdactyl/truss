@@ -22,7 +22,7 @@ function [AV,AF,ACV,ACF,coms,vols] = list_to_mesh(objs)
     % find centroid of object on which to apply force (gravity)
     [c,vol] = centroid(Vm,Fm);
     M=massmatrix(Vm,Fm);
-    com = mean(diag(M).*Vm,1);
+    com = diag(M)'*Vm/sum(M(:));
     coms(m,:) = com;
     vols(m) = vol;
   end

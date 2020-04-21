@@ -131,9 +131,5 @@ function [S,G,C,B] = create_nodal_equilibrium_matrices(V,E,ACV,coms)
 % 
 %   size(T)
 %   size(F)
-  size(G)
-  size(S)
-  size(C)
-  size(B)
   
 end

@@ -63,7 +63,6 @@ views = [x(:) y(:) z(:)];
 
 n = 100;
 [GSV,E,VC,~,Eraw] = groundstructure(AV,AF,ACF,n);
-size(Eraw,1)
 r = 0.01;
 EAs = groundstructure_visibility(views,AV,AF,GSV,E,'SampleSize',r);
 

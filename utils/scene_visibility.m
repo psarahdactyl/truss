@@ -24,7 +24,7 @@ function [Vs,GV,side,w] = scene_visibility(V,F,OV,OF,views)
   dir = repelem(GV,size(views,1),1);
 %   size(dir)
 %   [Vs,~,~] = ray_mesh_intersect(src,dir-src,OV,OF);
-  [Vs,ts,~] = ray_mesh_intersect(src,normalizerow(dir-src),OV,OF);
+  [Vs,ts,~] = ray_mesh_intersect(src,normalizerow(dir-src),V,F);
   Vs(Vs ~= 0) = 1; % 1 if hits mesh, 0 otherwise
   Vs(vecnorm((dir-src),2,2) < ts) = 0;
 %   size(Vs)

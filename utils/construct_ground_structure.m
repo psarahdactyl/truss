@@ -24,7 +24,8 @@ function [V,E,VC] = construct_ground_structure(AV,AF,ACV,ACF)
   XX = [];
   XC = [];
 
-  n = 5;
+  n = 100;
+  tic % hacky way to randomize the blue noise sampling
   for ci = 1:max(ACV)
     [Vc,~,~,Fc] = remove_unreferenced(AV,AF(ACF==ci,:));
     if(n*sum(doublearea(Vc,Fc))<6)
@@ -32,7 +33,7 @@ function [V,E,VC] = construct_ground_structure(AV,AF,ACV,ACF)
     else
       num=n*sum(doublearea(Vc,Fc));
     end
-    [Xc,~,~] = blue_noise(num,Vc,Fc,'Seed',rand);
+    [Xc,~,~] = blue_noise(num,Vc,Fc,'Seed',toc);
     XX = [XX;Xc];
     XC = [XC;repmat(ci,size(Xc,1),1)];
   end

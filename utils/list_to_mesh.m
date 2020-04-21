@@ -4,7 +4,7 @@
 %    objs{mesh_number}{2} are the faces
 % output:
 % AV, AF - the vertices and faces
-function [AV,AF,ACV,ACF,coms] = list_to_mesh(objs)
+function [AV,AF,ACV,ACF,coms,vols] = list_to_mesh(objs)
 
   AV=[];
   AF=[];
@@ -20,9 +20,11 @@ function [AV,AF,ACV,ACF,coms] = list_to_mesh(objs)
     ACV = [ACV; repmat(m,size(Vm,1),1)];
     ACF = [ACF; repmat(m,size(Fm,1),1)];
     % find centroid of object on which to apply force (gravity)
-%     com = centroid(Vm,Fm);
-    com = mean(Vm,1);
+    [c,vol] = centroid(Vm,Fm);
+    M=massmatrix(Vm,Fm);
+    com = mean(diag(M).*Vm,1);
     coms(m,:) = com;
+    vols(m) = vol;
   end
 
 end

@@ -35,7 +35,6 @@ n = 100;
 [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n);
 XE(XC(XE(:,1))==1&XC(XE(:,2))>2,:) = [];
 force = [0 0 -9.8];
-warning('are sC and sT reversed!?!')
 sC = 0*ones(size(XE,1),1)*1e2;
 sT = ones(size(XE,1),1)*1e2;
 sB = 0*ones(size(XE,1),1)*1e3;

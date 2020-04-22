@@ -1,17 +1,18 @@
+rng(0)
 V = {};
 F = {};
 coms = [nan nan nan];
-[V{end+1},F{end+1}] = load_mesh('~/Dropbox/models/bunny-remesh.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/bunny-remesh.obj');
 V{end} = V{end} *  ...
   axisangle2matrix([0 0 1],pi*0.1);
 coms(end+1,:) = centroid(V{end},F{end});
-[V{end+1},F{end+1}] = load_mesh('~/Dropbox/models/rocker-arm.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/rocker-arm.obj');
 V{end} = V{end} *  ...
   axisangle2matrix([1 1 0],-pi*0.4) * ...
   axisangle2matrix([0 0 1],-pi*0.4) * ...
   axisangle2matrix([1 0 0],-pi*0.1);
 coms(end+1,:) = centroid(V{end},F{end});
-[V{end+1},F{end+1}] = load_mesh('~/Dropbox/models/teapot.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/teapot.obj');
 V{end} = V{end} *  ...
   axisangle2matrix([1 0 0],-pi*0.4) * axisangle2matrix([0 0 1],pi/5) * ...
     axisangle2matrix([0 1 0],pi/10);

@@ -7,11 +7,11 @@ SF=fliplr(SF);
 
 V = {};
 F = {};
-[V{end+1},F{end+1}] = load_mesh('~/Downloads/cupped-sgp-left.obj');
-[V{end+1},F{end+1}] = load_mesh('~/Downloads/cupped-sgp-S.obj');
-[V{end+1},F{end+1}] = load_mesh('~/Downloads/cupped-sgp-G.obj');
-[V{end+1},F{end+1}] = load_mesh('~/Downloads/cupped-sgp-P.obj');
-[V{end+1},F{end+1}] = load_mesh('~/Downloads/cupped-sgp-right.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/cupped-sgp/cupped-sgp-left.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/cupped-sgp/cupped-sgp-S.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/cupped-sgp/cupped-sgp-G.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/cupped-sgp/cupped-sgp-P.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/cupped-sgp/cupped-sgp-right.obj');
 F{end} = fliplr(F{end});
 T = @(V) V*axisangle2matrix([1 0 0],-pi/2)*0.1+[0 0 1];
 V = cellfun(@(V) T(V),V,'UniformOutput',false);
@@ -36,8 +36,8 @@ n = 100;
 XE(XC(XE(:,1))==1&XC(XE(:,2))>2,:) = [];
 force = [0 0 -9.8];
 warning('are sC and sT reversed!?!')
-sC = ones(size(XE,1),1)*1e2;
-sT = 0*ones(size(XE,1),1)*1e2;
+sC = 0*ones(size(XE,1),1)*1e2;
+sT = ones(size(XE,1),1)*1e2;
 sB = 0*ones(size(XE,1),1)*1e3;
 
 [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);

@@ -9,6 +9,8 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,force,sC,sT,sB,
   %   coms #max(ACV) by 3 list of each object's center of mass
   %   sC,sT,sB scalars representing the compression, tension, bending yield
   %     stress, respectively
+  %   force 3 by 1 vector denoting force on each COM (gravity)
+  %   Optional: 'Mass' parameter #Objects by 1 list of mass per object
 
   % Outputs:
   %   (m = #E)

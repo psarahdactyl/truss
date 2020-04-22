@@ -24,8 +24,8 @@ function [x,ar,ax,be,fval] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
   
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'bending'}, ...
-    {'Bending'});
+    {'Bending'}, ...
+    {'bending'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};

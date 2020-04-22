@@ -18,11 +18,12 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,force,sC,sT,sB,
   %   beq #k*dim by 1 vectorized force matrix
   
   bending=1;
+  masses = ones(max(ACV),1);
   
   % Map of parameter names to variable names
   params_to_variables = containers.Map( ...
-    {'Bending'},...
-    {'bending'});
+    {'Bending', 'Mass'},...
+    {'bending', 'masses'});
   v = 1;
   while v <= numel(varargin)
     param_name = varargin{v};
@@ -37,8 +38,6 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,force,sC,sT,sB,
     v=v+1;
   end
   
-  bending
-%   n = size(V,1);
   m = size(E,1);
   nf = 1;
   
@@ -92,7 +91,7 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,force,sC,sT,sB,
   % bending+tension/compression+torque
   
   Aeq = [FE;TE];
-  beq = [repmat(force',max(ACV)-1,1);zeros(3*(max(ACV)-1),1)];
+  beq = [repmat(force',max(ACV)-1,1).*repelem(masses(2:end),3,1);zeros(3*(max(ACV)-1),1)];
 
 %   Aeq = [sparse(size(T,1)+size(F,1),m) [F;T]]; % 6 by m [0 t;f 0]*[a;n] = [0;-f]
 %   beq = [repmat([0 -9.8 0]',max(ACV)-1,1);zeros(3*(max(ACV)-1),1)];

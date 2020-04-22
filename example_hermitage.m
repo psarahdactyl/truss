@@ -49,30 +49,41 @@ Xvis = groundstructure_visibility( ...
 
 
 force = [0 0 -9.8];
-wires = false;
+wires = true;
 wvis = 10000;
 %wvis = 0;
 if wires
   XE = [XE;XE];
-  Xvis = [Xvis;0*Xvis];
-  sC = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e1;
-  sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e3;
+  Xvis = [0*Xvis;Xvis];
+  sT = [ones(size(XE,1)/2,1);zeros(size(XE,1)/2,1)]*1e3;
+  sC = [zeros(size(XE,1)/2,1);ones(size(XE,1)/2,1)]*1e1;
 else
   sC = ones(size(XE,1),1)*1e1;
   sT = sC;
 end
 sB = ones(size(XE,1),1)*0;
 
+% symmetry
+sp = [-35 0 0];
+sn = [1 0 0];
+XE = [XE;size(XX,1)+XE];
+XX = [XX;XX-2*sum((XX-sp).*sn,2).*sn];
+XC = repmat(XC,2,1);
+sC = repmat(sC,2,1);
+sT = repmat(sT,2,1);
+sB = repmat(sB,2,1);
+Xvis = repmat(Xvis,2,1);
+
 coms = [nan nan nan;centroid(V,F)];
 [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);
 objective = edge_lengths(XX,XE) + wvis*Xvis.^2;
-[x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
+[x,ar,ax,be,fval] = optimize_lp(objective,A,b,[Aeq;As],[beq;bs],'linprog');
 
 NZ = find(max(ar,0)>1e-7);
 [ar(NZ) ax(NZ) be(NZ,:)]
 if wires
-  RZ = ar>1e-6 & ax<0;
-  WZ = ar>1e-6 & ax>0;
+  RZ = ar>1e-6 & ax>0;
+  WZ = ar>1e-6 & ax<0;
 else
   RZ = NZ;
   WZ = [];
@@ -117,13 +128,13 @@ l = { ...
  light('Color',0.25*[1 1 1],'Position', [-1 10 500],'Style','local') ...
 };
 %AO = apply_ambient_occlusion([ssh,tsh],'AddLights',false);
-apply_ambient_occlusion(tsh,'AddLights',false);
-apply_ambient_occlusion(ssh,'AddLights',false,'Factor',0.5);
+%apply_ambient_occlusion(tsh,'AddLights',false);
+%apply_ambient_occlusion(ssh,'AddLights',false,'Factor',0.5);
 add_shadow([ssh,tsh,csh],l{6});
 camproj('persp');
 title(sprintf('%d out of %d, $%g',numel(NZ),size(E,1),fval),'FontSize',30);
 %view(0,0);
 %set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
-set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
+%set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
 
 %for t = -50;camtarget(coms(2,:)+[0 50 0]);camup([0 0 1]);campos(mean(PV)+[0 t 0]);camproj('persp');camva(50);drawnow;end

@@ -53,7 +53,7 @@ sum(NZ)
 ssh = [];
 clf;
 hold on;
-ssh = tsurf(SF,SV,'FaceVertexCData',repmat(blue,size(SV,1),1),fphong,falpha(1,0),fsoft);
+ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
 
 tsh = {};
 CM = interp1([0 1],[cbgreen;cbgreen*0.8+0.2],linspace(0,1,numel(V))');

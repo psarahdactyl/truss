@@ -1,0 +1,13 @@
+data/meshes/teaser/0.obj
+data/meshes/teaser/1.obj
+data/meshes/teaser/2.obj
+data/meshes/teaser/3.obj
+data/meshes/teaser/4.obj
+data/meshes/teaser/5.obj
+data/meshes/teaser/6.obj
+data/meshes/teaser/7.obj
+data/meshes/teaser/8.obj
+data/meshes/teaser/9.obj
+data/meshes/teaser/10.obj
+data/meshes/teaser/11.obj
+data/meshes/teaser/12.obj

@@ -61,11 +61,11 @@ NZ = ar>1e-6;
 
 [CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',0.2*sqrt(ar(NZ)),'PolySize',30);
 
-for pass = 1:4
+for pass = 1
 
 clf;
 hold on;
-ssh = tsurf(SF,SV,'FaceVertexCData',repmat(blue,size(SV,1),1),fphong,falpha(1,0),fsoft);
+ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
 red = [1 0 0];
 psh = surf(PX,PY,PZ, ...
   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
@@ -108,11 +108,11 @@ AO = apply_ambient_occlusion([ssh,tsh,csh],'AddLights',false);
 add_shadow([ssh,tsh,csh],l{6});
 camproj('persp');
 %view(0,0);
-set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
-
-if pass ==2
-  camtarget([0.5 1 0.5]);camup([0 0 1]);campos(mean(PV));camproj('persp');camva(50);
-end
-figpng(sprintf('pruned-bunny-%d.png',pass));
+% set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
+% 
+% if pass ==2
+%   camtarget([0.5 1 0.5]);camup([0 0 1]);campos(mean(PV));camproj('persp');camva(50);
+% end
+% figpng(sprintf('pruned-bunny-%d.png',pass));
 
 end

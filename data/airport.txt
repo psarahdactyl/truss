@@ -1,10 +1,13 @@
-/meshes/airport/0background.stl 1
-/meshes/airport/1Airplane.stl 0
-/meshes/airport/2Airplane_001.stl 0
-/meshes/airport/3earth_001.stl 0
--261.1703186035156 0.0 0.0
--200.96934509277344 0.0 0.0
--124.24337768554688 0.0 0.0
--32.79254913330078 0.0 0.0
-96.93183135986328 0.0 0.0
-235.65179443359375 0.0 0.0
+data/meshes/airport/0.obj
+data/meshes/airport/1.obj
+data/meshes/airport/2.obj
+data/meshes/airport/3.obj
+data/meshes/airport/4.obj
+data/meshes/airport/5.obj
+data/meshes/airport/6.obj
+data/meshes/airport/7.obj
+data/meshes/airport/8.obj
+data/meshes/airport/9.obj
+data/meshes/airport/10.obj
+data/meshes/airport/11.obj
+data/meshes/airport/12.obj

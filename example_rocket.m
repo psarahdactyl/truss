@@ -84,157 +84,160 @@ XE(setdiff([s1;s2],[e1;e2]),:) = [];
 
 for wvis = [0 10000]
 
-%%
-r = 0.1;
-if wvis == 0
-  Xvis = zeros(size(XE,1),1);
-else
-  Xvis = groundstructure_visibility([Q;R],VV,FF,XX,XE,'SampleSize',r);
+  %%
+  r = 0.1;
+  if wvis == 0
+    Xvis = zeros(size(XE,1),1);
+  else
+    Xvis = groundstructure_visibility([Q;R],VV,FF,XX,XE,'SampleSize',r);
+  end
+  % Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
+  % XE=YE;
+  
+  %%
+  g = [0 0 -9.8];
+  wires = wvis>0;
+  %wvis = 0;
+  if wires
+    XE = [XE;XE];
+    Xvis = [Xvis;0*Xvis];
+    % tension wires are second half
+    sC = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e5;
+    sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e5;
+    sB = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e4;
+  else
+    sC = ones(size(XE,1),1)*1e5;
+    sT = sC;
+    sB = sC*0.1;
+  end
+  
+  [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,g,sC,sT,sB,'Mass',masses);
+  objective = edge_lengths(XX,XE) + wvis*Xvis.^2;
+  objective(sT>0) = objective(sT>0)*10;
+  [x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
+  
+  NZ = find(max(ar,0)>1e-7);
+  if wires
+    RZ = ar>1e-6 & ax>0;
+    WZ = ar>1e-6 & ax<0;
+  else
+    RZ = NZ;
+    WZ = [];
+  end
+
+  if usejava('jvm')
+    [CV,CF] = edge_cylinders(XX,XE(RZ,:),'Thickness',1.*sqrt(ar(RZ)),'PolySize',30);
+    [uV,uF] = mesh_boolean(SV,SF,[],[],'union');
+    [uV,uF] = upsample(SV,SF,'Iterations',10,'OnlySelected',@(V,F) find(doublearea(V,F)>0.001));
+    
+    %
+    clf;
+    hold on;
+    ssh = tsurf(uF,uV,'FaceVertexCData',repmat(cbblue,size(uF,1),1),falpha(1,0),fsoft);
+    
+    % viewpoint distributions
+    psh = surf(QX,QY,QZ, ...
+      'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
+    %psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
+    colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,8)));
+    psh.DiffuseStrength = 0;
+    psh.AmbientStrength = 1;
+    psh.SpecularStrength = 0;
+    
+    rsh = surf(PX,PY,PZ, ...
+      'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
+    %rsh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
+    colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,8)));
+    rsh.DiffuseStrength = 0;
+    rsh.AmbientStrength = 1;
+    rsh.SpecularStrength = 0;
+    
+    vV = [];
+    vF = [];
+    vC = [];
+    for ii = 1:numel(V)
+      vF = [vF;size(vV,1)+F{ii}];
+      vC = [vC;repmat(ii,size(F{ii},1),1)];
+      vV = [vV;V{ii}];
+    end
+    
+    vAO = ambient_occlusion(vV,vF,barycenter(vV,vF),normalizerow(normals(vV,vF)),1000);
+    vF = vF(vAO<0.99,:);
+    vC = vC(vAO<0.99,:);
+    vAO = vAO(vAO<0.99);
+    
+    [vV,vF,J] = upsample(vV,vF,'Iterations',10,'OnlySelected',@(V,F) find(doublearea(V,F)>0.001));
+    vC = vC(J);
+    
+    tsh = {};
+    %%% attempting to make more distinct green colors
+    CM = interp1([0 1],[cbgreen;cbgreen*0.8+0.6],linspace(0,1,numel(V))');
+    rng(8);
+    CM = CM(randperm(size(CM,1)),:);
+    tsh{end+1} = tsurf( ...
+      vF,vV,'FaceVertexCData',CM(vC,:), ...
+      falpha(1,0),fsoft);
+    csh = tsurf(CF,CV, ...
+      falpha(1,0),fsoft,'FaceVertexCData',repmat(cborange,size(CF,1),1));
+    wsh = tsurf(XE(WZ,:),XX,'LineWidth',0.4,falpha(0,0.6),'EdgeColor','k','FaceColor','none');
+    
+    hold off;
+    axis equal;
+    view(-141,-1);
+    
+    l = { ...
+     light('Color',0.5*[1 1 1],'Position',(campos-camtarget),'Style','local'), ...
+     light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([0 0 1],pi/2),'Style','local'), ...
+     light('Color',0.25*[1 1 1],'Position',-(campos-camtarget)*axisangle2matrix([0 0 1],pi/2),'Style','local'), ...
+     light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],pi*0.9),'Style','local'), ...
+     light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],-pi*0.9),'Style','local') ...
+     light('Color',0.25*[1 1 1],'Position', [-1 -1 20],'Style','local') ...
+    };
+    apply_ambient_occlusion(tsh,'AddLights',false);
+    apply_ambient_occlusion(ssh,'AddLights',false);
+    % apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);
+    % apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
+    add_shadow({ssh,tsh{:},csh},l{6});
+    %apply_ambient_occlusion([],'AddLights',false);
+    camproj('persp');
+    %%view(0,0);
+    %
+    %% the loopy animation needs some work :(
+    %% for t = linspace(0,2*pi,60);camtarget(mean(VV));camup([0 0 1]);campos(mean(Q)+0.05*[((1+pi.*cos(t)).*cos(t)-pi+1)/2 0 0.5*(1+pi.*cos(t)).*sin(t)/2]);camproj('persp');camva(50);drawnow;end
+    
+    set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
+    for pass = 1:3
+      switch pass
+      case 1
+        psh.Visible = 'off';
+        rsh.Visible = 'off';
+      %%% outer view point for teaser
+      view(-175,6.0236);camva(7)
+      case 2
+        psh.Visible = 'off';
+        rsh.Visible = 'off';
+      %%% viewpoint for 1 distribution
+      camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(R)-[0 .3 0]);camproj('persp');camva(80);
+      case 3
+      %%% viewpoint for 2 distribution
+        psh.Visible = 'off';
+        rsh.Visible = 'off';
+      camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(Q)-[0.3 0 0]);camproj('persp');camva(65);
+      end
+      figpng(sprintf('rocket-%d-%d.png',wvis,pass));
+    end
+
+  end
 end
-% Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
-% XE=YE;
 
-%%
-g = [0 0 -9.8];
-wires = wvis>0;
-%wvis = 0;
-if wires
-  XE = [XE;XE];
-  Xvis = [Xvis;0*Xvis];
-  % tension wires are second half
-  sC = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e5;
-  sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e5;
-  sB = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e4;
-else
-  sC = ones(size(XE,1),1)*1e5;
-  sT = sC;
-  sB = sC*0.1;
+if usejava('jvm')
+  csh.Visible='off';
+  psh.Visible = 'on';
+  rsh.Visible = 'on';
+  %%% outer view point for teaser
+  view(-175,6.0236);camva(7)
+  figpng('rocket-input.png');
 end
-
-[A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,g,sC,sT,sB,'Mass',masses);
-objective = edge_lengths(XX,XE) + wvis*Xvis.^2;
-objective(sT>0) = objective(sT>0)*10;
-[x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
-
-NZ = find(max(ar,0)>1e-7);
-[ar(NZ) ax(NZ) be(NZ,:)]
-if wires
-  RZ = ar>1e-6 & ax>0;
-  WZ = ar>1e-6 & ax<0;
-else
-  RZ = NZ;
-  WZ = [];
-end
-[CV,CF] = edge_cylinders(XX,XE(RZ,:),'Thickness',1.*sqrt(ar(RZ)),'PolySize',30);
-[uV,uF] = mesh_boolean(SV,SF,[],[],'union');
-[uV,uF] = upsample(SV,SF,'Iterations',10,'OnlySelected',@(V,F) find(doublearea(V,F)>0.001));
-
-%
-clf;
-hold on;
-ssh = tsurf(uF,uV,'FaceVertexCData',repmat(cbblue,size(uF,1),1),falpha(1,0),fsoft);
-
-% viewpoint distributions
-psh = surf(QX,QY,QZ, ...
-  'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
-%psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
-colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,8)));
-psh.DiffuseStrength = 0;
-psh.AmbientStrength = 1;
-psh.SpecularStrength = 0;
-
-rsh = surf(PX,PY,PZ, ...
-  'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
-%rsh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
-colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,8)));
-rsh.DiffuseStrength = 0;
-rsh.AmbientStrength = 1;
-rsh.SpecularStrength = 0;
-
-vV = [];
-vF = [];
-vC = [];
-for ii = 1:numel(V)
-  vF = [vF;size(vV,1)+F{ii}];
-  vC = [vC;repmat(ii,size(F{ii},1),1)];
-  vV = [vV;V{ii}];
-end
-
-vAO = ambient_occlusion(vV,vF,barycenter(vV,vF),normalizerow(normals(vV,vF)),1000);
-vF = vF(vAO<0.99,:);
-vC = vC(vAO<0.99,:);
-vAO = vAO(vAO<0.99);
-
-[vV,vF,J] = upsample(vV,vF,'Iterations',10,'OnlySelected',@(V,F) find(doublearea(V,F)>0.001));
-vC = vC(J);
-
-tsh = {};
-%%% attempting to make more distinct green colors
-CM = interp1([0 1],[cbgreen;cbgreen*0.8+0.6],linspace(0,1,numel(V))');
-rng(8);
-CM = CM(randperm(size(CM,1)),:);
-tsh{end+1} = tsurf( ...
-  vF,vV,'FaceVertexCData',CM(vC,:), ...
-  falpha(1,0),fsoft);
-csh = tsurf(CF,CV, ...
-  falpha(1,0),fsoft,'FaceVertexCData',repmat(cborange,size(CF,1),1));
-wsh = tsurf(XE(WZ,:),XX,'LineWidth',0.4,falpha(0,0.6),'EdgeColor','k','FaceColor','none');
-
-hold off;
-axis equal;
-view(-141,-1);
-
-l = { ...
- light('Color',0.5*[1 1 1],'Position',(campos-camtarget),'Style','local'), ...
- light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([0 0 1],pi/2),'Style','local'), ...
- light('Color',0.25*[1 1 1],'Position',-(campos-camtarget)*axisangle2matrix([0 0 1],pi/2),'Style','local'), ...
- light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],pi*0.9),'Style','local'), ...
- light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],-pi*0.9),'Style','local') ...
- light('Color',0.25*[1 1 1],'Position', [-1 -1 20],'Style','local') ...
-};
-apply_ambient_occlusion(tsh,'AddLights',false);
-apply_ambient_occlusion(ssh,'AddLights',false);
-% apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);
-% apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
-add_shadow({ssh,tsh{:},csh},l{6});
-%apply_ambient_occlusion([],'AddLights',false);
-camproj('persp');
-%%view(0,0);
-%
-%% the loopy animation needs some work :(
-%% for t = linspace(0,2*pi,60);camtarget(mean(VV));camup([0 0 1]);campos(mean(Q)+0.05*[((1+pi.*cos(t)).*cos(t)-pi+1)/2 0 0.5*(1+pi.*cos(t)).*sin(t)/2]);camproj('persp');camva(50);drawnow;end
-
-set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
-for pass = 1:3
-
-switch pass
-case 1
-  psh.Visible = 'off';
-  rsh.Visible = 'off';
-%%% outer view point for teaser
-view(-175,6.0236);camva(7)
-case 2
-  psh.Visible = 'off';
-  rsh.Visible = 'off';
-%%% viewpoint for 1 distribution
-camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(R)-[0 .3 0]);camproj('persp');camva(80);
-case 3
-%%% viewpoint for 2 distribution
-  psh.Visible = 'off';
-  rsh.Visible = 'off';
-camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(Q)-[0.3 0 0]);camproj('persp');camva(65);
-end
-figpng(sprintf('rocket-%d-%d.png',wvis,pass));
-end
-
-end
-
-csh.Visible='off';
-psh.Visible = 'on';
-rsh.Visible = 'on';
-%%% outer view point for teaser
-view(-175,6.0236);camva(7)
-figpng('rocket-input.png');
 
 %%
 % save('teaser.mat','XX','XE','RZ','WZ','Q','R',...

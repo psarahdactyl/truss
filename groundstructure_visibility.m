@@ -15,13 +15,23 @@ function Zint = groundstructure_visibility(P,VV,FF,XX,XE,varargin)
   %   Zint  #XE list of integrated visibility values
   %
 
-  function [Zs] = many_ray_mesh_intersect(P,W,SBC,VV,FF)
+  function [Zs] = many_ray_mesh_intersect(P,W,SBC,VV,FF,th,SI)
+    % Attempt to keep things in memory
+    maxsbc = 500000;
+    if size(SBC,1)>maxsbc
+      Zs = [
+        many_ray_mesh_intersect(P,W,SBC(1:maxsbc,:),VV,FF,th,SI(1:maxsbc)); ...
+        many_ray_mesh_intersect(P,W,SBC(maxsbc+1:end,:),VV,FF,th,SI(maxsbc+1:end)); ...
+        ];
+      return;
+    end
     RO = repmat(permute(P,[3 1 2]),[size(SBC,1) 1 1]);
     RD =        permute(SBC,[1 3 2])-permute(P,[3 1 2]);
     [H,T] = ray_mesh_intersect(reshape(RO,[],3),reshape(RD,[],3),VV,FF);
     H = H & T<0.999999;
     Zs = 1*~H;
     Zs = reshape(Zs,size(SBC,1),size(W,1));
+    Zs=(Zs.*th(SI,:))*W/sum(W);
   end
 
   W = [];
@@ -48,6 +58,7 @@ function Zint = groundstructure_visibility(P,VV,FF,XX,XE,varargin)
     W = repmat(1/size(P,1),size(P,1),1);
   end
 
+  tic;
   [SX,SE,SI] = upsample(XX,XE, ...
     'Iterations',5,'OnlySelected',@(V,E) normrow(V(E(:,2),:)-V(E(:,1),:))>r);
   SBC = barycenter(SX,SE);
@@ -110,11 +121,11 @@ function Zint = groundstructure_visibility(P,VV,FF,XX,XE,varargin)
   %  Zs = W(1)*Zs;
   %  Zs = Zs/sum(W);
   case 'exact-sampling'
-    Zs = many_ray_mesh_intersect(P,W,SBC,VV,FF);
-    Zs=(Zs.*th(SI,:))*W/sum(W);
+    Zs = many_ray_mesh_intersect(P,W,SBC,VV,FF,th,SI);
   end
   % integrated viZibility  
-  Zavg = sparse(SI,1,Zs,size(XE,1),1)./sparse(SI,1,1,size(XE,1),1);
+  Zavg = accumarray(SI,Zs,[size(XE,1) 1])./accumarray(SI,1,[size(XE,1) 1]);
   %Xl = normrow(XX(XE(:,2),:)-XX(XE(:,1),:));
   Zint = Zavg;
+  fprintf('visibility: %g secs\n',toc);
 end

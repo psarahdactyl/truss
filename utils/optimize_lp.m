@@ -112,9 +112,11 @@ function [x,ar,ax,be,fval] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
         be = reshape(x(2*m+(1:2*m*nf)),2*m,nf);
         
      case 'linprog'
+       tic;
         [x,fval,flags,output] = linprog(f,A,b,...
             Aeq,beq);%, ...
 %             lb,ub);
+      fprintf('linprog: %g secs\n',toc);
         if(~isempty(x))
           ar = x(1:m);
           ax = reshape(x(m+(1:m*nf)),m,nf);
@@ -130,5 +132,7 @@ function [x,ar,ax,be,fval] = optimize_lp(obj,A,b,Aeq,beq,solver,varargin)
           be = [];
         end
  end
+fprintf('#rods:  %d\n',sum(max(ar,0)>1e-7 & ax>0));
+fprintf('#wires: %d\n',sum(max(ar,0)>1e-7 & ax<0));
 
 end

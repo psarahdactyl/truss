@@ -73,4 +73,7 @@ function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
   XE =   XE(~H,:);
   XEV = XEV(~H,:);
   XEU = XEU(~H,:);
+  fprintf('K: %d\n',max(CC)-1);
+  fprintf('YE: %d\n',size(YE,1));
+  fprintf('XE: %d\n',size(XE,1));
 end

@@ -74,7 +74,7 @@ set_diff=setdiff([s1;s2],[e1;e2])
 XE(setdiff([s1;s2],[e1;e2]),:) = [];
 
 %%
-r = 0.01;
+r = 0.1;
 Xvis = groundstructure_visibility([Q;R],VV,FF,XX,XE,'SampleSize',r);
 % Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
 % XE=YE;

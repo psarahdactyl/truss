@@ -4,7 +4,7 @@ F = {};
 coms = [nan nan nan];
 vols = nan;
 masses = nan;
-[V{end+1},F{end+1}] = load_mesh('data/meshes/turkey.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/turkey-bending.obj');
 [coms(end+1,:),vols(end+1)] = shell_centroid(V{end},F{end});
 [V{end},F{end}] = selfintersect(V{end},F{end},'StitchAll',true);
 masses = vols*5;
@@ -44,10 +44,48 @@ CC = cell2mat(arrayfun(@(i) repmat(i,size(F{i},1),1),1:numel(F),'UniformOutput',
 VV = [SV;VV];
 FF = [SF;size(SV,1)+FF];
 CC = [ones(size(SF,1),1);1+CC];
-[XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n);
+
+%%%%%%%
+% NORMAL GROUND STRUCTURE CODE
+% [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n);
 % XE(XC(XE(:,1))==1&XC(XE(:,2))==3,:) = [];
 % r = 0.001;
 % Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
+
+%%%%%%%%
+% MAKING A GROUND STRUCTURE 
+% BY PROJECTING THE COM ONTO SUPPORT SURFACE
+center=coms(2,:);
+theta = 0:pi/1000:2*pi;
+xs = 40 * cos(theta) + center(1);
+ys = 40 * sin(theta) + center(2);
+ne=size(theta,2);
+srcs=repmat(coms(2,:),ne,1);
+dirs=[xs',ys',coms(2,3)*ones(ne,1)];
+[flag, t, lambda] = ray_mesh_intersect(srcs, dirs-srcs, VV, FF);
+vve=[coms(2,:); dirs];
+ee=[ones(ne-1,1) (2:ne)'];
+
+nps=VV(FF(flag,1),:).*lambda(:,1)+...
+  VV(FF(flag,2),:).*lambda(:,2)+...
+  VV(FF(flag,3),:).*lambda(:,3);
+
+[flagn, tn, lambdan] = ray_mesh_intersect(nps, dirs-nps, SV, SF);
+
+flagnn=flagn(flagn~=0);
+lambdann=lambdan(flagn~=0,:);
+wps=SV(SF(flagnn,1),:).*lambdann(:,1)+...
+  SV(SF(flagnn,2),:).*lambdann(:,2)+...
+  SV(SF(flagnn,3),:).*lambdann(:,3);
+
+nnz=find(flagn~=0);
+sn=size(nps(nnz,:),1);
+sw=size(wps,1);
+XX=[nps(nnz,:);wps];
+XE=[(1:sn)' ((sn+1):(sn+sw))'];
+XEV = XX(XE(:,2),:)-XX(XE(:,1),:);
+XC=[ones(sn,1);2*ones(sw,1)];
+%%%%%%%%%%%%
 
 g = [0 0 -9.8];
 sC = ones(size(XE,1),1)*1e3;
@@ -64,15 +102,15 @@ NZ = ar>1e-6;
 
 clf;
 hold on;
-ssh = tsurf(SF,SV,'FaceVertexCData',repmat(blue,size(SV,1),1),fphong,falpha(1,0),fsoft);
+ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
 red = [1 0 0];
-psh = surf(PX,PY,PZ, ...
-  'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
-%psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
-colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,7)));
-psh.DiffuseStrength = 0;
-psh.AmbientStrength = 1;
-psh.SpecularStrength = 0;
+% psh = surf(PX,PY,PZ, ...
+%   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
+% %psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
+% colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,7)));
+% psh.DiffuseStrength = 0;
+% psh.AmbientStrength = 1;
+% psh.SpecularStrength = 0;
 tsh = {};
 CM = interp1([0 1],[cbgreen;cbgreen*0.6+0.4],linspace(0,1,numel(V))');
 for ii = 1:numel(V)
@@ -84,7 +122,8 @@ csh = tsurf(CF,CV, ...
   falpha(1,0),fsoft,'FaceVertexCData',repmat(cborange,size(CF,1),1));
 hold off;
 axis equal;
-view(-58,15);
+% view(-58,15);
+view(90,0);
 
 l = { ...
  light('Color',0.5*[1 1 1],'Position',(campos-camtarget),'Style','local'), ...

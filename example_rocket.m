@@ -15,8 +15,10 @@ for i=1:size(txt{1},1)
   [coms(end+1,:),vols(end+1,:)] = shell_centroid(V{end},F{end});
   [V{end},F{end}] = selfintersect(V{end},F{end},'StitchAll',true);
 end
+% [V{4},F{4}]=clean_mesh(V{4},F{4});
 masses = vols*10;
 
+%%
 CB = cbrewer('Set1',5);
 cbred = CB(1,:);
 cbblue = CB(2,:);
@@ -24,7 +26,7 @@ cbgreen = CB(3,:);
 cborange = CB(5,:);
 
 [SV,SF] = load_mesh('data/meshes/teaser/wall.obj');
-
+%%
 % units are meters
 
 [X,Y] = meshgrid(linspace(0,1),linspace(0,1));
@@ -44,6 +46,12 @@ QP = interp2(PX,PZ,PP,Q(:,1),Q(:,3));
 Q = Q(QI,:);
 Q = Q *  ...
   axisangle2matrix([0 0 1],-pi/4);
+AP=[PX(:) PY(:) PZ(:)];
+AP = AP *  ...
+  axisangle2matrix([0 0 1],-pi/4);
+PX = reshape(AP(:,1),size(PX));
+PY = reshape(AP(:,2),size(PY));
+PZ = reshape(AP(:,3),size(PZ));
 
 QX = X*0.75-0.25;
 QY = 0*Y-1.5;
@@ -53,7 +61,7 @@ R = random_points_on_mesh(RV,RF,nu*30);
 RP = interp2(QX,QZ,PP,R(:,1),R(:,3));
 [~,RI] = histc(rand(nu,1),[0;cumsum(RP)]/sum(RP));
 R = R(RI,:);
-
+%%
 n = 1500;
 
 VV = cell2mat(reshape(V,[],1));
@@ -116,7 +124,9 @@ end
 %%
 clf;
 hold on;
-ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
+ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SF,1),1),falpha(1,0),fsoft);
+
+%%% viewpoint distributions
 % psh = surf(QX,QY,QZ, ...
 %   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
 % %psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
@@ -124,16 +134,27 @@ ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,
 % psh.DiffuseStrength = 0;
 % psh.AmbientStrength = 1;
 % psh.SpecularStrength = 0;
+% 
+% psh = surf(PX,PY,PZ, ...
+%   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
+% %psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
+% colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,8)));
+% psh.DiffuseStrength = 0;
+% psh.AmbientStrength = 1;
+% psh.SpecularStrength = 0;
+
 tsh = {};
-CM = interp1([0 1],[cbgreen;cbgreen*0.6+0.4],linspace(0,1,numel(V))');
+%%% attempting to make more distinct green colors
+CM = interp1([0 1],[cbgreen;cbgreen*0.8+0.6],linspace(0,1,numel(V))');
+CM = CM(randperm(size(CM,1)),:);
 for ii = 1:numel(V)
   tsh{end+1} = tsurf( ...
-    F{ii},V{ii},'FaceVertexCData',repmat(CM(ii,:),size(V{ii},1),1), ...
-    fphong,falpha(1,0),fsoft);
+    F{ii},V{ii},'FaceVertexCData',repmat(CM(ii,:),size(F{ii},1),1), ...
+    falpha(1,0),fsoft);
 end
 csh = tsurf(CF,CV, ...
   falpha(1,0),fsoft,'FaceVertexCData',repmat(cborange,size(CF,1),1));
-wsh = tsurf(XE(WZ,:),XX,'LineWidth',1,'EdgeColor','k','FaceColor','none');
+wsh = tsurf(XE(WZ,:),XX,'LineWidth',0.4,'EdgeColor','k','FaceColor','none');
 
 hold off;
 axis equal;
@@ -147,7 +168,8 @@ l = { ...
  light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],-pi*0.9),'Style','local') ...
  light('Color',0.25*[1 1 1],'Position', [-1 -1 10],'Style','local') ...
 };
-% apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
+% apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);
+% apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
 add_shadow({ssh,tsh{:}},l{6});
 %apply_ambient_occlusion([],'AddLights',false);
 camproj('persp');
@@ -156,8 +178,14 @@ set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
 
 % the loopy animation needs some work :(
 % for t = linspace(0,2*pi,60);camtarget(mean(VV));camup([0 0 1]);campos(mean(Q)+0.05*[((1+pi.*cos(t)).*cos(t)-pi+1)/2 0 0.5*(1+pi.*cos(t)).*sin(t)/2]);camproj('persp');camva(50);drawnow;end
-% camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(R)-[0 .3 0]);camproj('persp');camva(50);
-% camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(Q)-[0.3 0 0]);camproj('persp');camva(50);
+
+%%% viewpoint for 1 distribution
+% camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(R)-[0 .3 0]);camproj('persp');camva(60);
+%%% viewpoint for 2 distribution
+% camtarget(mean(VV)-[0.3 0 0]);camup([0 0 1]);campos(mean(Q)-[0.3 0 0]);camproj('persp');camva(60);
+
+%%% outer view point for teaser
+% view(-170.76,6.0236)
 
 %%
 % save('teaser.mat','XX','XE','RZ','WZ','Q','R',...

@@ -51,7 +51,7 @@ function [A,b,Aeq,beq] = create_constraint_matrices(V,E,ACV,coms,force,sC,sT,sB,
 
   sCI = spdiags(sC(:),0,m,m);
   sTI = spdiags(sT(:),0,m,m);
-  sBL = spdiags(sB.*l(:),0,m,m);
+  sBL = spdiags(sB(:).*l(:),0,m,m);
   L = spdiags(1./l(:),0,m,m);
   
   if(bending==0)

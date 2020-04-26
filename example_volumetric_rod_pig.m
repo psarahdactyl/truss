@@ -1,10 +1,13 @@
-rng(0);
 addpath ../cyCodeBase/
-[V,F] = load_mesh('data/meshes/bunny-remesh.obj');
+[V,F] = load_mesh('data/meshes/pig_triangulated.obj');
 V=V* axisangle2matrix([0 0 1],pi*0.1);
 % rescale to unit sphere
 V = V-0.5*(max(V)+min(V));
 V = V/max(normrow(V));
+V = V *  ...
+  axisangle2matrix([0 1 0],pi/5);
+V = V *  ...
+  axisangle2matrix([1 0 0],-pi/2);
 % 0.3 m wide
 V = V*0.5*0.5;
 V = V + [0.5 0.5 0.5];
@@ -62,7 +65,7 @@ NZ = ar>1e-6;
 
 [CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',0.2*sqrt(ar(NZ)),'PolySize',30);
 
-for pass = 1:4
+for pass = 1
 
 clf;
 hold on;
@@ -109,11 +112,11 @@ AO = apply_ambient_occlusion([ssh,tsh,csh],'AddLights',false);
 add_shadow([ssh,tsh,csh],l{6});
 camproj('persp');
 %view(0,0);
-set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
-
-if pass ==2
-  camtarget([0.5 1 0.5]);camup([0 0 1]);campos(mean(PV));camproj('persp');camva(50);
-end
-figpng(sprintf('pruned-bunny-%d.png',pass));
+% set(gca,'Position',[0 0 1 1],'Visible','off');set(gcf,'Color','w');
+% 
+% if pass ==2
+%   camtarget([0.5 1 0.5]);camup([0 0 1]);campos(mean(PV));camproj('persp');camva(50);
+% end
+% figpng(sprintf('pruned-bunny-%d.png',pass));
 
 end

@@ -1,3 +1,4 @@
+rng(0);
 addpath ../cyCodeBase/
 [V,F] = load_mesh('~/Dropbox/models/bunny-remesh.obj');
 V=V* axisangle2matrix([0 0 1],pi*0.1);
@@ -54,9 +55,9 @@ force = [0 0 -9.8];
 sC = repmat(1e3,size(XE,1),1);
 sT = repmat(1e3,size(XE,1),1);
 sB = repmat(1e2,size(XE,1),1);
-[A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB,'bending',1);
+[A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);
 objective = edge_lengths(XX,XE)+100*Zint.^2;
-[x,ar,ax,be] = optimize_lp(objective,A,b,Aeq,beq,'linprog','bending',1); 
+[x,ar,ax,be] = optimize_lp(objective,A,b,Aeq,beq,'linprog'); 
 NZ = ar>1e-6;
 
 [CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',0.2*sqrt(ar(NZ)),'PolySize',30);
@@ -65,7 +66,7 @@ for pass = 1:4
 
 clf;
 hold on;
-ssh = tsurf(SF,SV,'FaceVertexCData',repmat(blue,size(SV,1),1),fphong,falpha(1,0),fsoft);
+ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
 red = [1 0 0];
 psh = surf(PX,PY,PZ, ...
   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');

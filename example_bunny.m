@@ -2,7 +2,7 @@ rng(0)
 V = {};
 F = {};
 coms = [nan nan nan];
-[V{end+1},F{end+1}] = load_mesh('data/meshes/bunny_remesh.obj');
+[V{end+1},F{end+1}] = load_mesh('data/meshes/bunny-remesh.obj');
 V{end} = V{end} *  ...
   axisangle2matrix([0 0 1],pi*0.1);
 coms(end+1,:) = centroid(V{end},F{end});

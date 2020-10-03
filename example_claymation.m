@@ -10,19 +10,28 @@ coms = [nan nan nan];
 vols = nan;
 masses = nan;
 
-fid = fopen('data/clay.txt','r');
-txt = textscan(fid,'%s','delimiter',"\n");
-fclose(fid);
-for i=1:size(txt{1},1)
-  txt{1}{i}
-  [V{end+1},F{end+1}] = load_mesh(txt{1}{i});
-  [coms(end+1,:),vols(end+1,:)] = shell_centroid(V{end},F{end});
-  [V{end},F{end}] = selfintersect(V{end},F{end},'StitchAll',true);
-  V{end}=V{end}/100;
-end
-% [V{4},F{4}]=clean_mesh(V{4},F{4});
-masses = [nan 0.1 3.7 6.4 1.9 1.3]';
-masses = masses/1000;
+[V{end+1},F{end+1}] = load_mesh('data/meshes/claymation/bear.obj');
+V{end}=V{end}/100;
+coms(end+1,:) = centroid(V{end},F{end});
+
+[V{end+1},F{end+1}] = load_mesh('data/meshes/claymation/crane.obj');
+V{end}=V{end}/100;
+coms(end+1,:) = centroid(V{end},F{end});
+
+[V{end+1},F{end+1}] = load_mesh('data/meshes/claymation/flamingo.obj');
+V{end}=V{end}/100;
+coms(end+1,:) = centroid(V{end},F{end});
+
+[V{end+1},F{end+1}] = load_mesh('data/meshes/claymation/penguin.obj');
+V{end}=V{end}/100;
+coms(end+1,:) = centroid(V{end},F{end});
+
+[V{end+1},F{end+1}] = load_mesh('data/meshes/claymation/turtle.obj');
+V{end}=V{end}/100;
+coms(end+1,:) = centroid(V{end},F{end});
+
+masses = [nan 1.9 0.1 1.3 6.4 3.7]';
+masses = masses/100;
 % paper crane 0.1g
 % turtle 3.7g
 % penguin 6.4g
@@ -39,15 +48,14 @@ cborange = CB(5,:);
 SV=SV/100;
 %%
 % units are meters
-
 [X,Y] = meshgrid(linspace(0,1),linspace(0,1));
 PP = normrow([X(:) Y(:)]-mean([X(:) Y(:)]));
 PP = clamp(max(PP)-PP,0.2,1);
 PP = matrixnormalize(PP);
 PP = reshape(PP,size(X));
-PX = X*0.9+0.5;
-PY = 0*Y+4.5;
-PZ = Y*0.5-0.25;
+PX = X*0.9-0.8;
+PY = 0*Y+1.5;
+PZ = Y*0.5+1.25;
 [PF,PV] = surf2patch(PX,PY,PZ,'triangles');
 tsurf(PF,PV);
 
@@ -57,8 +65,8 @@ Q = random_points_on_mesh(PV,PF,nu*30);
 QP = interp2(PX,PZ,PP,Q(:,1),Q(:,3));
 [~,QI] = histc(rand(nu,1),[0;cumsum(QP)]/sum(QP));
 Q = Q(QI,:);
-Q = Q *  ...
-  axisangle2matrix([0 0 1],-pi/4);
+% Q = Q *  ...
+%   axisangle2matrix([0 0 1],-pi/4);
 % AP=[PX(:) PY(:) PZ(:)];
 % AP = AP *  ...
 %   axisangle2matrix([0 0 1],-pi/4);
@@ -66,14 +74,14 @@ Q = Q *  ...
 % PY = reshape(AP(:,2),size(PY));
 % PZ = reshape(AP(:,3),size(PZ));
 
-QX = X*0.75-0.25;
-QY = 0*Y-1.5;
-QZ = Y*1.5-0.25;
-[RF,RV] = surf2patch(QX,QY,QZ,'triangles');
-R = random_points_on_mesh(RV,RF,nu*30);
-RP = interp2(QX,QZ,PP,R(:,1),R(:,3));
-[~,RI] = histc(rand(nu,1),[0;cumsum(RP)]/sum(RP));
-R = R(RI,:);
+% QX = X*0.75-0.25;
+% QY = 0*Y-1.5;
+% QZ = Y*1.5-0.25;
+% [RF,RV] = surf2patch(QX,QY,QZ,'triangles');
+% R = random_points_on_mesh(RV,RF,nu*30);
+% RP = interp2(QX,QZ,PP,R(:,1),R(:,3));
+% [~,RI] = histc(rand(nu,1),[0;cumsum(RP)]/sum(RP));
+% R = R(RI,:);
 %%
 n = 1500;
 
@@ -85,11 +93,12 @@ VV = [SV;VV];
 FF = [SF;size(SV,1)+FF];
 CC = [ones(size(SF,1),1);1+CC];
 [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n);
+% don't prune
 % XX=YX;
 % XE=YE;
 % XC=YC;
 
-for wvis = [10000]
+% for wvis = [10000]
 
   %%
   r = 0.1;
@@ -116,13 +125,13 @@ for wvis = [10000]
     sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e4;
     sB = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e4;
   else
-    sC = ones(size(XE,1),1)*1e5;
+    sC = ones(size(XE,1),1)*1e3;
     sT = sC;
     sB = sC;%*0.1;
   end
   
   [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,g,sC,sT,sB,'Mass',masses);
-  objective = edge_lengths(XX,XE);% + wvis*Xvis.^2;
+  objective = edge_lengths(XX,XE)+ 100*Xvis.^2;
 %   objective(sT>0) = objective(sT>0)*10;
   [x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
   
@@ -134,16 +143,21 @@ for wvis = [10000]
     RZ = NZ;
     WZ = [];
   end
-end
+  
+%%
+%plot_groundstructure(GSV,E,ar,ax);
+NZ = ar>1e-6;
+[CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',sqrt(ar(NZ)/pi),'PolySize',30);
+
+% end
 %%
 clf;
 hold on;
 
 ssh = tsurf(SF,SV,'FaceVertexCData',repmat(cbblue,size(SV,1),1),fphong,falpha(1,0),fsoft);
 red = [1 0 0];
-psh = surf(X*0.75+0.25*0.5,0*Y-0.75,Y*0.5+0.25, ...
+psh = surf(PX,PY,PZ, ...
   'CData',PP,'AlphaData',PP,fphong,'EdgeColor','none','FaceAlpha','interp');
-%psh = tsurf(PF,PV,'CData',PP,fphong,falpha(1,0),fsoft);
 colormap(interp1([1 0],[cbred;1 1 1],linspace(0,1,7)));
 psh.DiffuseStrength = 0;
 psh.AmbientStrength = 1;
@@ -155,10 +169,6 @@ for ii = 2:numel(V)
     F{ii},V{ii},'FaceVertexCData',repmat(CM(ii,:),size(V{ii},1),1), ...
     fphong,falpha(1,0),fsoft);
 end
-
-%plot_groundstructure(GSV,E,ar,ax);
-NZ = ar>1e-6;
-[CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',2*sqrt(ar(NZ)),'PolySize',30);
 
 csh = tsurf(CF,CV, ...
   falpha(1,0),fsoft,'FaceVertexCData',repmat(cborange,size(CV,1),1));

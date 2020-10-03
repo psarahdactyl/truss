@@ -9,7 +9,7 @@ filename = ...
 
 % read scene and plot the objects
 [objs,bb,views] = read_scene(filename);
-[AV,AF,ACV,ACF,coms] = list_to_mesh(objs);
+[AV,AF,ACV,ACF,coms,vols] = list_to_mesh(objs);
 [RV,RF,~] = list_to_mesh(objs(2:end,:));
 
 % % % generate views
@@ -82,8 +82,9 @@ objective(size(E,1)/2:end) = ...
 [x,ar,ax,be] = optimize_lp(objective,A,b,Aeq,beq,'linprog','bending',1); 
 
 NZ = find(max(ar,0)>1e-5);
-save('everything.mat','AV','AF','ACV','ACF',...
-      'ar','ax','be','sC','sT','sB','V','E','VC','EAs');
+%%
+save('karan-planes.mat','AV','AF','ACV','ACF',...
+      'ar','ax','be','sC','sT','sB','V','E','VC','EAs','views');
 
 %%
 % plotting

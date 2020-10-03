@@ -2,14 +2,14 @@ rng(0);
 
 addpath ../cyCodeBase/
 addpath utils/
-[AV,AF] = load_mesh('/Users/ajx/Dropbox/models/pterosaure-light-solid.obj');
+[AV,AF] = load_mesh('data/meshes/pterosaure-light-solid.obj');
 AV = AV-0.5*(max(AV)+min(AV));
 AV = AV/max(normrow(AV));
 
 [SV,SF] = create_regular_grid(2,2);
 SV = 2*(SV*[1 0 0;0 1 0]+[-0.5 -0.5 0])+[0 0 1];
 SF=fliplr(SF);
-[KV,KF] = load_mesh('~/Dropbox/models/panel-decimated.ply');
+[KV,KF] = load_mesh('data/meshes/panel-decimated.ply');
 KV = KV*axisangle2matrix([1 0 0],pi);
 KV(:,1:2) = KV(:,1:2) - 0.5*(max(KV(:,1:2))+min(KV(:,1:2)));
 KV(:,3) = KV(:,3)- 0.5*(max(KV(:,3))+min(KV(:,3)));
@@ -57,7 +57,7 @@ assert(min(count>6));
 
 
 r = 0.1;
-%Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
+Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
 Xvis = zeros(size(XE,1),1);
 force = [0 0 -9.8];
 XE = [XE;XE];

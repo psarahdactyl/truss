@@ -5,15 +5,32 @@ hold on
 
 tests = {};
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% example 1
+% % example 0
+% V = [0 1 0;
+%     2 1 0];
+% f = zeros(size(V,1),3);
+% f(2,2) = -9.8;
+% tests{1}{1} = V;
+% tests{1}{2} = f;
+
+% example 0
 V = [0 1 0;
     2 1 0;
-    0 1 1;
-    2 1 1];
+    3 1 0];
 f = zeros(size(V,1),3);
-f(4,2) = -9.8;
+f(3,3) = -9.8;
 tests{1}{1} = V;
 tests{1}{2} = f;
+
+% % example 1
+% V = [0 1 0;
+%     2 1 0;
+%     0 1 1;
+%     2 1 1];
+% f = zeros(size(V,1),3);
+% f(4,2) = -9.8;
+% tests{1}{1} = V;
+% tests{1}{2} = f;
 
 % example 1 broken
 V = [0 1 0;
@@ -100,7 +117,7 @@ tests{6}{2} = f;
 % f(16,2) = -9.8;
 
 tiledlayout(3,2)
-for i = 1:6
+for i = 1
 V = tests{i}{1};
 f = tests{i}{2};
 
@@ -112,20 +129,19 @@ E(any(diff(E,[],2)==0,2),:)=[]; % get rid of rows of edges from a vertex to itse
 
 bf = find(V(:,1) == 0);
  
-% % plot boundary conditions
-% plot_edges(V,E);
-% scatter3(V(bf,1),V(bf,2),V(bf,3),'.b','SizeData',1000);
-% 
-% % plot force
-% quiver3(V(:,1),V(:,2),V(:,3),f(:,1),f(:,2),f(:,3),0.5,'r','LineWidth',3);
-% 
-% 
-% axis equal
-% camup([0 1 0])
-% cameratoolbar('SetCoordSys','y')
-% cameratoolbar('setmode','orbit')
-% camproj('perspective');
-% 
+% plot boundary conditions
+plot_edges(V,E);
+scatter3(V(bf,1),V(bf,2),V(bf,3),'.b','SizeData',1000);
+
+% plot force
+quiver3(V(:,1),V(:,2),V(:,3),f(:,1),f(:,2),f(:,3),0.5,'r','LineWidth',3);
+
+
+axis equal
+camup([0 1 0])
+cameratoolbar('setmode','orbit')
+camproj('perspective');
+
 % return
 
 sC = 1e2;

@@ -56,13 +56,17 @@ sC = repmat(1e3,size(XE,1),1);
 sT = repmat(1e3,size(XE,1),1);
 sB = repmat(1e2,size(XE,1),1);
 [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);
-objective = edge_lengths(XX,XE)+100*Zint.^2;
+objective = edge_lengths(XX,XE)+10000*Zint.^2;
 [x,ar,ax,be] = optimize_lp(objective,A,b,Aeq,beq,'linprog'); 
 NZ = ar>1e-6;
 
 [CV,CF] = edge_cylinders(XX,XE(NZ,:),'Thickness',0.2*sqrt(ar(NZ)),'PolySize',30);
 
-for pass = 1:4
+EVV = [VV;CV];
+EFF = [FF;size(VV,1)+CF];
+writeOBJ('bunny-example.obj',EVV,EFF);
+
+for pass = 1
 
 clf;
 hold on;

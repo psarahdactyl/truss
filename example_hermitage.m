@@ -1,10 +1,10 @@
 rng(0);
 addpath ../cyCodeBase/
 addpath utils/
-[SV,SF] = load_mesh('~/Dropbox/models/hermitage.obj');
+[SV,SF] = load_mesh('data/meshes/hermitage/hermitage.obj');
 [uV,uF] = upsample(SV,SF,'Iterations',10,'OnlySelected',@(V,F) find(doublearea(V,F)>1));
 %[V,F] = load_mesh('~/Dropbox/models/balloon-dog.obj');
-[V,F] = load_mesh('~/Dropbox/models/balloon-dog-decimated.obj');
+[V,F] = load_mesh('data/meshes/hermitage/balloon-dog-decimated.obj');
 V = V*axisangle2matrix([0 0 1],pi/2);
 V = V*axisangle2matrix([1 0 0],-0.1*pi);
 
@@ -45,7 +45,7 @@ W = ones(size(Q,1),1);
 W = W./sum(W);
 vis_method = 'exact-sampling';
 Xvis = groundstructure_visibility( ...
-  Q,VV,FF,XX,XE,'SampleSize',r,'Method',vis_method,'Weight',W);
+  Q,VV,FF,YX,YE,'SampleSize',r,'Method',vis_method,'Weight',W);
 
 
 force = [0 0 -9.8];
@@ -53,31 +53,32 @@ wires = true;
 wvis = 10000;
 %wvis = 0;
 if wires
-  XE = [XE;XE];
+  YE = [YE;YE];
   Xvis = [0*Xvis;Xvis];
-  sT = [ones(size(XE,1)/2,1);zeros(size(XE,1)/2,1)]*1e3;
-  sC = [zeros(size(XE,1)/2,1);ones(size(XE,1)/2,1)]*1e1;
+  sT = [ones(size(YE,1)/2,1);zeros(size(YE,1)/2,1)]*1e3;
+  sC = [zeros(size(YE,1)/2,1);ones(size(YE,1)/2,1)]*1e1;
 else
-  sC = ones(size(XE,1),1)*1e1;
+  sC = ones(size(YE,1),1)*1e1;
   sT = sC;
 end
-sB = ones(size(XE,1),1)*0;
+sB = ones(size(YE,1),1)*0;
 
 % symmetry
 sp = [-35 0 0];
 sn = [1 0 0];
-XE = [XE;size(XX,1)+XE];
-XX = [XX;XX-2*sum((XX-sp).*sn,2).*sn];
-XC = repmat(XC,2,1);
+YE = [YE;size(YX,1)+YE];
+YX = [YX;YX-2*sum((YX-sp).*sn,2).*sn];
+YC = repmat(YC,2,1);
 sC = repmat(sC,2,1);
 sT = repmat(sT,2,1);
 sB = repmat(sB,2,1);
 Xvis = repmat(Xvis,2,1);
 
 coms = [nan nan nan;centroid(V,F)];
-[A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);
-objective = edge_lengths(XX,XE) + wvis*Xvis.^2;
-[x,ar,ax,be,fval] = optimize_lp(objective,A,b,[Aeq;As],[beq;bs],'linprog');
+[A,b,Aeq,beq] = create_constraint_matrices(YX,YE,YC,coms,force,sC,sT,sB);
+objective = edge_lengths(YX,YE) + wvis*Xvis.^2;
+% [x,ar,ax,be,fval] = optimize_lp(objective,A,b,[Aeq;As],[beq;bs],'linprog');
+[x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
 
 NZ = find(max(ar,0)>1e-7);
 [ar(NZ) ax(NZ) be(NZ,:)]
@@ -88,7 +89,7 @@ else
   RZ = NZ;
   WZ = [];
 end
-[CV,CF] = edge_cylinders(XX,XE(RZ,:),'Thickness',1.*sqrt(ar(RZ)),'PolySize',30);
+[CV,CF] = edge_cylinders(YX,YE(RZ,:),'Thickness',1.*sqrt(ar(RZ)),'PolySize',30);
 
 
 clf;

@@ -1,9 +1,13 @@
 addpath ../cyCodeBase/
-[V,F] = load_mesh('data/meshes/bunny-remesh.obj');
+[V,F] = load_mesh('data/meshes/pig_triangulated.obj');
 V=V* axisangle2matrix([0 0 1],pi*0.1);
 % rescale to unit sphere
 V = V-0.5*(max(V)+min(V));
 V = V/max(normrow(V));
+V = V *  ...
+  axisangle2matrix([0 1 0],pi/5);
+V = V *  ...
+  axisangle2matrix([1 0 0],-pi/2);
 % 0.3 m wide
 V = V*0.5*0.5;
 V = V + [0.5 0.5 0.5];

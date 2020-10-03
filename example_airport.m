@@ -28,7 +28,8 @@ cborange = CB(5,:);
 
 [TV,TF] = load_mesh('data/meshes/airport/walkway.obj');
 
-Q = [ones(40,1) linspace(53,92,40)' 1.7*ones(40,1)]; 
+%%
+Q = [3.5*ones(40,1) linspace(58,89,40)' 1.7*ones(40,1)]; 
 
 % units are meters
 
@@ -61,13 +62,13 @@ CC = [ones(size(SF,1),1);1+CC];
 %%%%%%%
 % NORMAL GROUND STRUCTURE CODE
 [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n);
-% discard if intersecting something else in the scene
- XEV = XX(XE(:,2),:)-XX(XE(:,1),:);
-[H,T] = ray_mesh_intersect(XX(XE(:,1),:),XEV,TV,TF);
-H = H & T<0.999999;
-XE = XE(~H,:);
+% % discard if intersecting something else in the scene
+%  XEV = XX(XE(:,2),:)-XX(XE(:,1),:);
+% [H,T] = ray_mesh_intersect(XX(XE(:,1),:),XEV,TV,TF);
+% H = H & T<0.999999;
+% XE = XE(~H,:);
 
-XE(XC(XE(:,1))==1&XC(XE(:,2))==3,:) = [];
+% XE(XC(XE(:,1))==1&XC(XE(:,2))==3,:) = [];
 r = 0.01;
 Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
 
@@ -79,17 +80,18 @@ if wires
   XE = [XE;XE];
   Xvis = [Xvis;0*Xvis];
   % tension wires are second half
-  sC = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e6;
-  sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e4;
-  sB = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e5;
+  sC = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e5;
+  sT = [zeros(size(XE,1)/2,1) ones(size(XE,1)/2,1)]*1e6;
+  sB = [ones(size(XE,1)/2,1) zeros(size(XE,1)/2,1)]*1e4;
 else
-  sC = ones(size(XE,1),1)*1e4;
+  sC = ones(size(XE,1),1)*1e5;
   sT = sC;
+  sB = sC*0.1;
 end
-% sB = ones(size(XE,1),1)*0;
 
 [A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,g,sC,sT,sB,'Mass',masses);
 objective = edge_lengths(XX,XE) + wvis*Xvis.^2;
+objective(sT>0) = objective(sT>0)*100;
 [x,ar,ax,be,fval] = optimize_lp(objective,A,b,Aeq,beq,'linprog');
 
 NZ = find(max(ar,0)>1e-7);

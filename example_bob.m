@@ -57,28 +57,28 @@ XEU = XEU(~H,:);
 % symmetry
 sp = [0 0 0];
 sn = [0 1 0];
-XE = [XE;size(XX,1)+XE];
-XX = [XX;XX-2*sum((XX-sp).*sn,2).*sn];
+YE = [YE;size(XX,1)+YE];
+YX = [YX;YX-2*sum((YX-sp).*sn,2).*sn];
 force = [0 0 9.8];
-sT = ones(size(XE,1),1)*1e3;
-sC = ones(size(XE,1),1)*0;
-sB = ones(size(XE,1),1)*0;
+sT = ones(size(YE,1),1)*1e3;
+sC = ones(size(YE,1),1)*0;
+sB = ones(size(YE,1),1)*0;
 
-Xvis = groundstructure_visibility(Q,VV,FF,XX,XE,'SampleSize',r);
+Xvis = groundstructure_visibility(Q,VV,FF,YX,YE,'SampleSize',r);
 
 %As = [];
-As = [speye(size(XE,1)/2) -speye(size(XE,1)/2) sparse(size(XE,1)/2,size(XE,1)*3)];
+As = [speye(size(YE,1)/2) -speye(size(YE,1)/2) sparse(size(YE,1)/2,size(YE,1)*3)];
 bs = zeros(size(As,1),1);
-[A,b,Aeq,beq] = create_constraint_matrices(XX,XE,XC,coms,force,sC,sT,sB);
-objective = edge_lengths(XX,XE);
+[A,b,Aeq,beq] = create_constraint_matrices(YX,YE,YC,coms,force,sC,sT,sB);
+objective = edge_lengths(YX,YE);
 [x,ar,ax,be,fval] = optimize_lp(objective,A,b,[Aeq;As],[beq;bs],'linprog');
 NZ = find(max(ar,0)>1e-7);
 [ar(NZ) ax(NZ) be(NZ,:)]
 
 
-[HV,HF] = load_mesh('/Users/ajx/Dropbox/models/Cosmic blobs/Model3-pose-0000.obj');
+[HV,HF] = load_mesh('data/meshes/bob/Model3-pose-0000.obj');
 HV = (HV*axisangle2matrix([1 0 0],-pi/2)-[0.3822 -0.7546 0.778])*0.1*axisangle2matrix([0 0 1],pi/2);
-[HV,HF] = repmesh(HV,HF,XX(XE(NZ,2),:));
+[HV,HF] = repmesh(HV,HF,YX(YE(NZ,2),:));
 
 [RV,RF] = create_regular_grid(6,3);
 RV = 0.5*(RV-0.5)*[5 0 0;0 0.5 0]+[0.2 0 min(HV(:,3))];

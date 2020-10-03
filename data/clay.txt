@@ -1,0 +1,5 @@
+data/meshes/claymation/0.obj
+data/meshes/claymation/1.obj
+data/meshes/claymation/2.obj
+data/meshes/claymation/3.obj
+data/meshes/claymation/4.obj

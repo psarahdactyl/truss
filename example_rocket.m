@@ -82,7 +82,7 @@ e2=find(ismember(XE(:,2),find(XC==12)));
 set_diff=setdiff([s1;s2],[e1;e2]);
 XE(setdiff([s1;s2],[e1;e2]),:) = [];
 
-for wvis = [0 10000]
+for wvis = [10000]
 
   %%
   r = 0.1;
@@ -193,12 +193,12 @@ for wvis = [0 10000]
      light('Color',0.25*[1 1 1],'Position', (campos-camtarget)*axisangle2matrix([1 0 0],-pi*0.9),'Style','local') ...
      light('Color',0.25*[1 1 1],'Position', [-1 -1 20],'Style','local') ...
     };
-    apply_ambient_occlusion(tsh,'AddLights',false);
-    apply_ambient_occlusion(ssh,'AddLights',false);
-    % apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);
-    % apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
-    add_shadow({ssh,tsh{:},csh},l{6});
-    %apply_ambient_occlusion([],'AddLights',false);
+%     apply_ambient_occlusion(tsh,'AddLights',false);
+%     apply_ambient_occlusion(ssh,'AddLights',false);
+%     % apply_ambient_occlusion([tsh{:},ssh],'AddLights',false);
+%     % apply_ambient_occlusion(csh,'AddLights',false,'Factor',0.5);
+%     add_shadow({ssh,tsh{:},csh},l{6});
+%     %apply_ambient_occlusion([],'AddLights',false);
     camproj('persp');
     %%view(0,0);
     %

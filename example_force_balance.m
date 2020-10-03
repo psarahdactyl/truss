@@ -1,13 +1,13 @@
 
-%[V,F] = load_mesh('~/Dropbox/models/bunny-remesh.obj');
-%V = V * axisangle2matrix([0 0 1],-pi*0.1);
-%V = V * axisangle2matrix([-1 1 0],pi*0.1);
+[V,F] = load_mesh('data/meshes/bunny-remesh.obj');
+V = V * axisangle2matrix([0 0 1],-pi*0.1);
+V = V * axisangle2matrix([-1 1 0],pi*0.1);
 %% rescale to unit sphere
-%V = V-0.5*(max(V)+min(V));
-%V = V/max(normrow(V));
+V = V-0.5*(max(V)+min(V));
+V = V/max(normrow(V));
 %% 0.3 m wide
-%V = V*0.3*0.5;
-%AO = [];
+V = V*0.3*0.5;
+AO = [];
 CB = cbrewer('Set1',5);
 cbred = CB(1,:);
 cbblue = CB(2,:);

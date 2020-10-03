@@ -11,3 +11,4 @@ data/meshes/airport/9.obj
 data/meshes/airport/10.obj
 data/meshes/airport/11.obj
 data/meshes/airport/12.obj
+data/meshes/airport/13.obj

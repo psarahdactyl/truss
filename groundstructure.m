@@ -1,5 +1,5 @@
 function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
-  % [XX,XE,XC] = groundstructure(VV,FF,CC,n)
+  % [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
   %
   % Inputs:
   %   VV  #VV by 3 list of mesh vertex positions
@@ -9,10 +9,13 @@ function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
   %       or 
   %       max(CC) list of samples per component
   % Outputs:
-  %   XX  #XX by 3 list of ground structure positions
-  %   XE  #XE by 2 list of indices into XX
+  %   XX  #XX by 3 list of PRUNED ground structure positions
+  %   XE  #XE by 2 list of PRUNED indices into XX
   %   XC  #XC list of mesh component indices
-  % 
+  %   YX  #XX by 3 list of ground structure positions
+  %   YE  #XE by 2 list of indices into XX
+  %   YC  #XC list of mesh component indices
+  %
 
   % loop over each component gather samples+normals
   XX = [];
@@ -28,7 +31,8 @@ function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
     nn = n;
   end
   assert(numel(nn) == nc);
-
+  nn(nn<10)=10 % hack for small objects
+  
   % blue noise on each object for endpoints
   for ci = 1:nc
     [Vc,~,~,Fc] = remove_unreferenced(VV,FF(CC==ci,:));
@@ -60,6 +64,7 @@ function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
   
   % discard if the angle w.r.t. to endpoint normal is too large
   max_angle = 80/180*pi;
+%   max_angle = 20/180*pi;
   valid = ...
     sum(XEU.*XN(XE(:,1),:),2) > cos(max_angle) & ...
     sum(-XEU.*XN(XE(:,2),:),2) > cos(max_angle);

@@ -37,7 +37,7 @@ function [XX,XE,XC,YX,YE,YC] = groundstructure(VV,FF,CC,n)
   for ci = 1:nc
     [Vc,~,~,Fc] = remove_unreferenced(VV,FF(CC==ci,:));
     Nc = normalizerow(normals(Vc,Fc));
-    [Xc,Ic,Bc] = blue_noise(nn(ci),Vc,Fc,'Seed',rand);
+    [Xc,Ic,Bc] = cy_blue_noise(nn(ci),Vc,Fc,'Seed',rand);
     Nc = Nc(Ic,:);
     XX = [XX;Xc];
     XN = [XN;Nc];

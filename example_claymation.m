@@ -60,7 +60,7 @@ PZ = Y*0.5+1.25;
 tsurf(PF,PV);
 
 nu = 200;
-%Q = blue_noise(nu*300,PV,PF);
+%Q = cy_blue_noise(nu*300,PV,PF);
 Q = random_points_on_mesh(PV,PF,nu*30);
 QP = interp2(PX,PZ,PP,Q(:,1),Q(:,3));
 [~,QI] = histc(rand(nu,1),[0;cumsum(QP)]/sum(QP));

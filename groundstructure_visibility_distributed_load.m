@@ -65,8 +65,8 @@ tsurf(RF,RV,...
 
 % % sample points on surfaces
 addpath ../cyCodeBase/
-[Rc,Irc,Brc] = blue_noise(1*sum(doublearea(RV,RF)),RV,RF,'Seed',rand);
-[Dc,Idc,Bdc] = blue_noise(1*sum(doublearea(DV,DF)),DV,DF,'Seed',rand);
+[Rc,Irc,Brc] = cy_blue_noise(1*sum(doublearea(RV,RF)),RV,RF,'Seed',rand);
+[Dc,Idc,Bdc] = cy_blue_noise(1*sum(doublearea(DV,DF)),DV,DF,'Seed',rand);
 % Rc = RV;
 % Dc = DV;
 scatter3(Rc(:,1),Rc(:,2),Rc(:,3),'.g','SizeData',100);

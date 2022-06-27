@@ -21,7 +21,7 @@ function [V,E,f,bf,ig] = construct_ground_structure(AV,AF,ACV,ACF,coms,force)
   n = 5;
 %   for ci = 1:max(ACV)
 %     [Vc,~,~,Fc] = remove_unreferenced(AV,AF(ACF==ci,:));
-%     [Xc,~,~] = blue_noise(n*sum(doublearea(Vc,Fc)),Vc,Fc,'Seed',rand);
+%     [Xc,~,~] = cy_blue_noise(n*sum(doublearea(Vc,Fc)),Vc,Fc,'Seed',rand);
 %     XX = [XX;Xc];
 %     XC = [XC;repmat(ci,size(Xc,1),1)];
 %   end

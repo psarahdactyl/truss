@@ -19,7 +19,7 @@ CC = [ones(size(SF,1),1);1+ones(size(F,1),1)];
 
 N = normalizerow(normals(V,F));
 n = 1000;
-[X,I,B] = blue_noise(n,V,F,'Seed',rand);
+[X,I,B] = cy_blue_noise(n,V,F,'Seed',rand);
 XN = [N(I,:);nan(size(XBC,1),3)];
 XX = [X;XBC];
 XC = [repmat(2,size(X,1),1);ones(size(XBC,1),1)];
